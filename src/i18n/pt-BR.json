@@ -1,0 +1,25 @@
+{
+  "common": {
+    "error": "Erro",
+    "onlyStaff": "Apenas a staff pode usar este comando.",
+    "cooldown": "Aguarde {seconds}s para usar este comando novamente."
+  },
+  "perfil": {
+    "title": "👤 Perfil",
+    "noData": "Sem dados ainda."
+  },
+  "competitive": {
+    "deniedPack": [
+      "<:bensa_evil:1453193952277827680> Você ainda não tem poder suficiente… este comando é só para quem joga ranqueado.",
+      "<:bensa_evil:1453193952277827680> Esse comando não é pra brincadeira. Entra no modo competitivo primeiro.",
+      "<:bensa_evil:1453193952277827680> Ainda não. Aqui é guerra… e você não tá no time dos competitivos.",
+      "<:bensa_evil:1453193952277827680> Quer usar isso? Então escolha o caminho do competitivo.",
+      "<:bensa_evil:1453193952277827680> Você tá tentando entrar no campo dos fortes… mas ainda não pertence a ele.",
+      "<:bensa_evil:1453193952277827680> Sem espírito competitivo, esse comando não responde.",
+      "<:bensa_evil:1453193952277827680> Você não tem acesso a esse nível… desbloqueie o competitivo.",
+      "<:bensa_evil:1453193952277827680> Aqui não tem piedade. Volte quando estiver no competitivo.",
+      "<:bensa_evil:1453193952277827680> Esse comando exige sangue frio. O casual não aguenta.",
+      "<:bensa_evil:1453193952277827680> Ainda não chegou lá… só os ranqueados podem usar isso."
+    ]
+  }
+}

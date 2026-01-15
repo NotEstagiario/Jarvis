@@ -1,0 +1,25 @@
+{
+  "common": {
+    "error": "Error",
+    "onlyStaff": "Only staff can use this command.",
+    "cooldown": "Please wait {seconds}s before using this command again."
+  },
+  "perfil": {
+    "title": "👤 Profile",
+    "noData": "No data yet."
+  },
+  "competitive": {
+    "deniedPack": [
+      "<:bensa_evil:1453193952277827680> You still lack the power… this command is for ranked players only.",
+      "<:bensa_evil:1453193952277827680> This isn’t a casual playground. Switch to competitive mode first.",
+      "<:bensa_evil:1453193952277827680> Not yet. This is war… and you’re not among the competitive.",
+      "<:bensa_evil:1453193952277827680> Want to use this? Then choose the path of competitive.",
+      "<:bensa_evil:1453193952277827680> You’re trying to enter the strong players’ field… but you don’t belong there yet.",
+      "<:bensa_evil:1453193952277827680> Without a competitive spirit, this command won’t answer.",
+      "<:bensa_evil:1453193952277827680> You don’t have access to this level… unlock competitive first.",
+      "<:bensa_evil:1453193952277827680> No mercy here. Come back when you’re competitive.",
+      "<:bensa_evil:1453193952277827680> This command requires cold blood. Casuals can’t handle it.",
+      "<:bensa_evil:1453193952277827680> You’re not there yet… only ranked players can use this."
+    ]
+  }
+}
