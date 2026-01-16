@@ -1,6 +1,10 @@
-@"
 node_modules/
 .env
+
+# SQLite
 jarvis.sqlite
+jarvis.sqlite-shm
+jarvis.sqlite-wal
+
+# Logs
 *.log
-"@ | Out-File -Encoding utf8 .gitignore
