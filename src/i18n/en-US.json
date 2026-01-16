@@ -38,5 +38,9 @@
 
   "PROFILE_STAT_NEMESIS": "My Nemesis",
   "PROFILE_STAT_FAVORITE": "My Favorite Opponent",
-  "PROFILE_STAT_BESTWIN": "My Best Win"
+  "PROFILE_STAT_BESTWIN": "My Best Win",
+
+  "LANG_CHANGED": "✅ Language successfully changed to **English**.",
+  "LANG_CHANGED_PT": "✅ Language successfully changed to **Português**.",
+  "LANG_COOLDOWN": "⏳ You can change your language again in **{time}**."
 }

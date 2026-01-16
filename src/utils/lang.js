@@ -1,13 +1,15 @@
 // src/utils/lang.js
 
 // ========================================================
-// Language utils
-// Por enquanto: fallback pt-BR
-// No futuro: busca real em SQLite (users.language)
+// Lang utils
+//
+// ✅ Fonte real do idioma agora é SQLite (users.language)
 // ========================================================
 
-function getUserLang(/* userId */) {
-  return "pt-BR";
+const { getUserLanguage } = require("../modules/global/language/language.service");
+
+function getUserLang(userId) {
+  return getUserLanguage(userId);
 }
 
 module.exports = { getUserLang };

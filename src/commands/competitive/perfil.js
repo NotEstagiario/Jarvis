@@ -8,7 +8,7 @@
 // - /analisarperfil é outro comando (staff) para ver perfil de terceiros
 //
 // ✅ Arquitetura:
-// - i18n desde o início
+// - i18n desde o início (SEM texto hardcoded)
 // - DB via SQLite service
 // - Código organizado e comentado
 //
@@ -108,11 +108,28 @@ module.exports = {
         new EmbedBuilder()
           .setAuthor(author)
           .setColor(0x2b2d31)
-          .setDescription(`# <:bensa_evil:1453193952277827680> ${t(lang, "PROFILE_TITLE_PLAYER")}: ${interaction.user}`)
+          .setDescription(
+            `# <:bensa_evil:1453193952277827680> ${t(lang, "PROFILE_TITLE_PLAYER")}: ${interaction.user}`
+          )
           .addFields(
-            { name: "", inline: true, value: `🏅 **Rank da Season Atual**: Sem Rank` },
-            { name: "", inline: true, value: `✨ **XP**: ${Number(profile.xp ?? 0)}` },
-            { name: "", inline: true, value: `🏆 **Campeonatos**: Nenhum` }
+            {
+              name: "",
+              inline: true,
+              value: `🏅 **${t(lang, "PROFILE_STAT_SEASON_RANK")}**: Sem Rank`,
+            },
+            {
+              name: "",
+              inline: true,
+              value: `✨ **${t(lang, "PROFILE_STAT_XP")}**: ${Number(profile.xp ?? 0)}`,
+            },
+            {
+              name: "",
+              inline: true,
+              value: `🏆 **${t(lang, "PROFILE_STAT_CHAMPIONSHIPS")}**: ${t(
+                lang,
+                "PROFILE_VALUE_NONE_MASC"
+              )}`,
+            }
           )
       );
 
@@ -122,7 +139,11 @@ module.exports = {
           .setAuthor(author)
           .setColor(0x2b2d31)
           .setDescription(`# 💎 ${t(lang, "PROFILE_TITLE_BADGES")}`)
-          .addFields({ name: "", inline: false, value: "Nenhuma." })
+          .addFields({
+            name: "",
+            inline: false,
+            value: `${t(lang, "PROFILE_VALUE_NONE_FEM")}.`,
+          })
       );
 
       // página 3 - partidas
@@ -138,10 +159,30 @@ module.exports = {
           .setColor(0x2b2d31)
           .setDescription(`# ⚔️ ${t(lang, "PROFILE_TITLE_MATCHES")}`)
           .addFields(
-            { name: "", inline: true, value: `🥇 **Vitória / Derrota / Empate**: ${wins} / ${losses} / ${draws}` },
-            { name: "", inline: true, value: `📊 **Taxa de Vitórias**: ${winRate}` },
-            { name: "", inline: false, value: `🔥 **Sequência Atual de Vitórias**: ${Number(profile.currentStreak ?? 0)}` },
-            { name: "", inline: false, value: `🏅 **Melhor Sequência de Vitórias**: ${Number(profile.bestStreak ?? 0)}` }
+            {
+              name: "",
+              inline: true,
+              value: `🥇 **${t(lang, "PROFILE_STAT_WLD")}**: ${wins} / ${losses} / ${draws}`,
+            },
+            {
+              name: "",
+              inline: true,
+              value: `📊 **${t(lang, "PROFILE_STAT_WINRATE")}**: ${winRate}`,
+            },
+            {
+              name: "",
+              inline: false,
+              value: `🔥 **${t(lang, "PROFILE_STAT_STREAK_CURRENT")}**: ${Number(
+                profile.currentStreak ?? 0
+              )}`,
+            },
+            {
+              name: "",
+              inline: false,
+              value: `🏅 **${t(lang, "PROFILE_STAT_STREAK_BEST")}**: ${Number(
+                profile.bestStreak ?? 0
+              )}`,
+            }
           )
       );
 
@@ -157,9 +198,21 @@ module.exports = {
           .setColor(0x2b2d31)
           .setDescription(`# ⚽ ${t(lang, "PROFILE_TITLE_GOALS")}`)
           .addFields(
-            { name: "", inline: true, value: `⚽️ **Gols marcados**: ${scored}` },
-            { name: "", inline: true, value: `🥅 **Gols sofridos**: ${conceded}` },
-            { name: "", inline: true, value: `${saldoEmoji} **Meu Saldo**: ${saldo}` }
+            {
+              name: "",
+              inline: true,
+              value: `⚽️ **${t(lang, "PROFILE_STAT_GOALS_SCORED")}**: ${scored}`,
+            },
+            {
+              name: "",
+              inline: true,
+              value: `🥅 **${t(lang, "PROFILE_STAT_GOALS_CONCEDED")}**: ${conceded}`,
+            },
+            {
+              name: "",
+              inline: true,
+              value: `${saldoEmoji} **${t(lang, "PROFILE_STAT_GOALS_BALANCE")}**: ${saldo}`,
+            }
           )
       );
 
@@ -170,9 +223,21 @@ module.exports = {
           .setColor(0x2b2d31)
           .setDescription(`# 👫 ${t(lang, "PROFILE_TITLE_RIVALRIES")}`)
           .addFields(
-            { name: "", inline: true, value: `💀 **Meu Carrasco**: N/A` },
-            { name: "", inline: true, value: `☠️ **Meu Freguês**: N/A` },
-            { name: "", inline: true, value: `⚽️ **Minha maior Vitória**: N/A` }
+            {
+              name: "",
+              inline: true,
+              value: `💀 **${t(lang, "PROFILE_STAT_NEMESIS")}**: N/A`,
+            },
+            {
+              name: "",
+              inline: true,
+              value: `☠️ **${t(lang, "PROFILE_STAT_FAVORITE")}**: N/A`,
+            },
+            {
+              name: "",
+              inline: true,
+              value: `⚽️ **${t(lang, "PROFILE_STAT_BESTWIN")}**: N/A`,
+            }
           )
       );
 

@@ -1,6 +1,13 @@
+node_modules/
+.env
+
+# SQLite
 jarvis.sqlite
-jarvis.sqlite-wal
 jarvis.sqlite-shm
+jarvis.sqlite-wal
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+
+# Logs
+*.log
