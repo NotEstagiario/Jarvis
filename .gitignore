@@ -1,4 +1,6 @@
+@"
 node_modules/
 .env
-*.db
-prisma/dev.db
+jarvis.sqlite
+*.log
+"@ | Out-File -Encoding utf8 .gitignore
