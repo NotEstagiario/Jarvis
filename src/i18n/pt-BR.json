@@ -1,0 +1,42 @@
+{
+  "COMMON_ONLY_YOU": "❌ Apenas você pode usar esses botões.",
+  "COMMON_ERROR_GENERIC": "❌ Ocorreu um erro.",
+
+  "PROFILE_CMD_DESC": "Mostra o perfil competitivo",
+  "PROFILE_COOLDOWN": "⏳ Aguarde **{time}** para usar **/perfil** novamente.",
+  "PROFILE_WRONG_CHANNEL": "⚠️ Use este comando apenas no canal {channel}.",
+  "PROFILE_LOAD_ERROR": "❌ Erro ao carregar o perfil.",
+
+  "PROFILE_BTN_PLAYER": "Jogador",
+  "PROFILE_BTN_BADGES": "Insígnias",
+  "PROFILE_BTN_MATCHES": "Partidas",
+  "PROFILE_BTN_GOALS": "Gols",
+  "PROFILE_BTN_RIVALRIES": "Rivalidades",
+  "PROFILE_BTN_BACK": "Voltar",
+  "PROFILE_BTN_NEXT": "Próximo",
+
+  "PROFILE_TITLE_PLAYER": "Jogador",
+  "PROFILE_TITLE_BADGES": "Insígnias",
+  "PROFILE_TITLE_MATCHES": "Partidas Jogadas",
+  "PROFILE_TITLE_GOALS": "Meus Saldos de Gols",
+  "PROFILE_TITLE_RIVALRIES": "Rivalidades",
+
+  "PROFILE_STAT_SEASON_RANK": "Rank da Season Atual",
+  "PROFILE_STAT_XP": "XP",
+  "PROFILE_STAT_CHAMPIONSHIPS": "Campeonatos",
+  "PROFILE_VALUE_NONE_MASC": "Nenhum",
+  "PROFILE_VALUE_NONE_FEM": "Nenhuma",
+
+  "PROFILE_STAT_WLD": "Vitória / Derrota / Empate",
+  "PROFILE_STAT_WINRATE": "Taxa de Vitórias",
+  "PROFILE_STAT_STREAK_CURRENT": "Sequência Atual de Vitórias",
+  "PROFILE_STAT_STREAK_BEST": "Melhor Sequência de Vitórias",
+
+  "PROFILE_STAT_GOALS_SCORED": "Gols marcados",
+  "PROFILE_STAT_GOALS_CONCEDED": "Gols sofridos",
+  "PROFILE_STAT_GOALS_BALANCE": "Meu Saldo",
+
+  "PROFILE_STAT_NEMESIS": "Meu Carrasco",
+  "PROFILE_STAT_FAVORITE": "Meu Freguês",
+  "PROFILE_STAT_BESTWIN": "Minha maior Vitória"
+}

@@ -8,7 +8,6 @@
 // - Cada arquivo deve exportar: { data, execute }
 // - data = SlashCommandBuilder()
 // - execute(interaction)
-//
 // ========================================================
 
 const fs = require("fs");
@@ -57,10 +56,16 @@ function loadCommands() {
 
       const name = command.data.name;
       commands.set(name, command);
-      logger.info(`Comando carregado: /${name}`);
     } catch (err) {
       logger.error(`Falha ao carregar comando: ${file}`, err);
     }
+  }
+
+  // Log bonito
+  logger.info(`📦 Comandos carregados: ${commands.size}`);
+  if (commands.size > 0) {
+    const list = Array.from(commands.keys()).map((n) => `/${n}`).join(", ");
+    logger.info(`📜 Lista: ${list}`);
   }
 
   return commands;

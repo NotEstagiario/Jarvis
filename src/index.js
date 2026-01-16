@@ -3,13 +3,6 @@
 // ========================================================
 // Jarvis - Ponto de entrada
 // ATENÇÃO: este arquivo controla boot do bot.
-// Mexer aqui sem saber pode impedir o bot de ligar.
-//
-// Sequência de Boot:
-// 1) Carregar env
-// 2) Aplicar DB schema
-// 3) Carregar comandos
-// 4) Iniciar Discord Client
 // ========================================================
 
 require("dotenv").config();
@@ -19,8 +12,6 @@ const { Client, GatewayIntentBits } = require("discord.js");
 const logger = require("./core/logger");
 const botConfig = require("./config/bot");
 const { applySchema } = require("./database/sqlite");
-
-// 🧠 Loader de comandos
 const { loadCommands } = require("./loaders/commandLoader");
 
 // Eventos
@@ -28,7 +19,19 @@ const readyEvent = require("./events/ready");
 const interactionCreateEvent = require("./events/interactionCreate");
 
 // ========================================================
-// Validação de ENV
+// Captura de erros globais (evita "clean exit" silencioso)
+// ========================================================
+
+process.on("unhandledRejection", (reason) => {
+  logger.error("Unhandled Rejection detectada.", reason);
+});
+
+process.on("uncaughtException", (err) => {
+  logger.error("Uncaught Exception detectada.", err);
+});
+
+// ========================================================
+// Validação ENV
 // ========================================================
 
 if (!process.env.DISCORD_TOKEN) {
@@ -36,14 +39,13 @@ if (!process.env.DISCORD_TOKEN) {
   process.exit(1);
 }
 
-// ========================================================
-// Inicialização do Jarvis
-// ========================================================
+logger.info("===============================================");
+logger.info(`🤖 ${botConfig.name} iniciando...`);
+logger.info(`📌 Versão atual: ${botConfig.version}`);
+logger.info("===============================================");
 
-logger.info(`Iniciando ${botConfig.name} — ${botConfig.version}...`);
-
 // ========================================================
-// Banco de Dados (SQLite)
+// Banco SQLite
 // ========================================================
 
 try {
@@ -62,26 +64,30 @@ const client = new Client({
 });
 
 // ========================================================
-// Carregar comandos na memória do bot
+// Commands
 // ========================================================
 
 client.commands = loadCommands();
-
-logger.info(`Comandos carregados: ${client.commands.size}`);
-if (client.commands.size > 0) {
-  const list = Array.from(client.commands.keys()).map((n) => `/${n}`).join(", ");
-  logger.info(`Lista: ${list}`);
-}
 
 // ========================================================
 // Eventos
 // ========================================================
 
+// ⚠️ v14 ok, mas v15 muda para clientReady
 client.once("ready", () => readyEvent(client));
 client.on("interactionCreate", (interaction) => interactionCreateEvent(interaction));
 
 // ========================================================
-// Login
+// Login (COM try/catch e log explícito)
 // ========================================================
 
-client.login(process.env.DISCORD_TOKEN);
+(async () => {
+  try {
+    logger.info("🔐 Tentando logar no Discord...");
+    await client.login(process.env.DISCORD_TOKEN);
+    logger.info("✅ Login iniciado (aguardando ready)...");
+  } catch (err) {
+    logger.error("❌ Falha ao logar no Discord (token errado ou erro de conexão).", err);
+    process.exit(1);
+  }
+})();

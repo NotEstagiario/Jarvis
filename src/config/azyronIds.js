@@ -40,5 +40,8 @@ module.exports = {
   roles: {
     competitive: "1457347614147215391",
     casual: "1457362198216179961",
+
+    // STAFF (obrigatório para comandos staff, ex: /analisarperfil)
+    staff: "1453136651940270296",
   },
 };
