@@ -1,90 +1,128 @@
 // src/modules/global/language/language.service.js
 
 // ========================================================
-// Language Service (Global)
+// Language Service (GLOBAL)
+// - Cooldown 24h por usuário
+// - Persistente em SQLite
 //
-// ✅ Regras (Word):
-// - bot tem 2 idiomas: pt-BR e en-US
-// - cooldown 24h pra trocar de idioma
-// - presidente tem bypass total
+// ⚠️ REGRA IMPORTANTE:
+// NUNCA executar SQL no topo do arquivo (no require),
+// porque o deploy-commands carrega arquivos SEM inicializar DB.
 // ========================================================
 
+const logger = require("../../../core/logger");
 const { getDb } = require("../../../database/sqlite");
-const azyron = require("../../../config/azyronIds");
 
 const COOLDOWN_MS = 1000 * 60 * 60 * 24; // 24h
-const DEFAULT_LANG = "pt-BR";
-const SUPPORTED = new Set(["pt-BR", "en-US"]);
 
-function now() {
-  return Date.now();
-}
-
-function isPresident(userId) {
-  return userId === azyron.presidentUserId;
-}
-
-function ensureUserRow(userId) {
+function ensureLanguageCooldownTable() {
   const db = getDb();
 
-  const row = db.prepare(`SELECT userId, language, languageUpdatedAt FROM users WHERE userId = ?`).get(userId);
-
-  if (row) return row;
-
-  const ts = now();
-  db.prepare(
-    `INSERT INTO users (userId, language, languageUpdatedAt, createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, ?)`
-  ).run(userId, DEFAULT_LANG, 0, ts, ts);
-
-  return db.prepare(`SELECT userId, language, languageUpdatedAt FROM users WHERE userId = ?`).get(userId);
+  // cria tabela se não existir
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS language_cooldowns (
+      userId TEXT PRIMARY KEY,
+      lastChangeAt INTEGER NOT NULL
+    )
+  `).run();
 }
 
-function getUserLanguage(userId) {
-  const row = ensureUserRow(userId);
-  const lang = row?.language || DEFAULT_LANG;
-  if (!SUPPORTED.has(lang)) return DEFAULT_LANG;
-  return lang;
+function ensurePanelsTable() {
+  const db = getDb();
+
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS fixed_panels (
+      key TEXT PRIMARY KEY,
+      channelId TEXT NOT NULL,
+      messageId TEXT NOT NULL,
+      updatedAt INTEGER NOT NULL
+    )
+  `).run();
 }
 
+// ========================================================
+// Cooldown
+// ========================================================
 function canChangeLanguage(userId) {
-  if (isPresident(userId)) return { ok: true, leftMs: 0 };
+  const db = getDb();
+  ensureLanguageCooldownTable();
 
-  const row = ensureUserRow(userId);
-  const last = Number(row.languageUpdatedAt || 0);
+  const row = db
+    .prepare(`SELECT lastChangeAt FROM language_cooldowns WHERE userId = ?`)
+    .get(userId);
 
-  const diff = now() - last;
-  if (diff >= COOLDOWN_MS) return { ok: true, leftMs: 0 };
+  if (!row) return true;
 
-  return { ok: false, leftMs: COOLDOWN_MS - diff };
+  const diff = Date.now() - Number(row.lastChangeAt);
+  return diff >= COOLDOWN_MS;
 }
 
-function setUserLanguage(userId, newLang) {
-  if (!SUPPORTED.has(newLang)) {
-    throw new Error(`Idioma inválido: ${newLang}`);
-  }
-
+function getTimeLeftToChangeLanguage(userId) {
   const db = getDb();
-  ensureUserRow(userId);
+  ensureLanguageCooldownTable();
 
-  const allowed = canChangeLanguage(userId);
-  if (!allowed.ok) return { ok: false, leftMs: allowed.leftMs, lang: getUserLanguage(userId) };
+  const row = db
+    .prepare(`SELECT lastChangeAt FROM language_cooldowns WHERE userId = ?`)
+    .get(userId);
 
-  const ts = now();
-  db.prepare(
-    `UPDATE users
-     SET language = ?, languageUpdatedAt = ?, updatedAt = ?
-     WHERE userId = ?`
-  ).run(newLang, ts, ts, userId);
+  if (!row) return "0s";
 
-  return { ok: true, leftMs: 0, lang: newLang };
+  const diff = Date.now() - Number(row.lastChangeAt);
+  const left = Math.max(0, COOLDOWN_MS - diff);
+
+  const totalSeconds = Math.ceil(left / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
+
+function markLanguageChange(userId) {
+  const db = getDb();
+  ensureLanguageCooldownTable();
+
+  db.prepare(`
+    INSERT INTO language_cooldowns (userId, lastChangeAt)
+    VALUES (?, ?)
+    ON CONFLICT(userId) DO UPDATE SET lastChangeAt = excluded.lastChangeAt
+  `).run(userId, Date.now());
+}
+
+// ========================================================
+// Painel fixo (armazenar messageId / channelId)
+// ========================================================
+function savePanelMessage(panelKey, channelId, messageId) {
+  const db = getDb();
+  ensurePanelsTable();
+
+  db.prepare(`
+    INSERT INTO fixed_panels (key, channelId, messageId, updatedAt)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(key) DO UPDATE SET
+      channelId = excluded.channelId,
+      messageId = excluded.messageId,
+      updatedAt = excluded.updatedAt
+  `).run(panelKey, channelId, messageId, Date.now());
+}
+
+function getPanelMessage(panelKey) {
+  const db = getDb();
+  ensurePanelsTable();
+
+  return db
+    .prepare(`SELECT key, channelId, messageId FROM fixed_panels WHERE key = ?`)
+    .get(panelKey);
 }
 
 module.exports = {
-  DEFAULT_LANG,
-  SUPPORTED,
   COOLDOWN_MS,
-  getUserLanguage,
   canChangeLanguage,
-  setUserLanguage,
+  getTimeLeftToChangeLanguage,
+  markLanguageChange,
+
+  savePanelMessage,
+  getPanelMessage,
 };

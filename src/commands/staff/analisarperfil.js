@@ -13,6 +13,10 @@
 // - punishedUntil (se existir)
 // - userId do jogador
 //
+// ✅ EXTRA (NOVO):
+// - maior cargo do jogador no servidor
+// - quantidade de cargos no servidor
+//
 // ⚠️ IMPORTANTE:
 // - Discord permite no máximo 5 botões por ActionRow
 // - então: tabs divididas em 2 linhas
@@ -33,6 +37,13 @@ const { t } = require("../../i18n");
 const { getUserLang } = require("../../utils/lang");
 const { getCompetitiveProfile } = require("../../modules/global/profiles/profile.service");
 
+// ========================================================
+// DEBUG anti-spam (Word)
+// - Em produção NÃO pode poluir terminal com comando
+// - Para ativar logs: DEBUG_COMMANDS=true no .env
+// ========================================================
+const DEBUG_COMMANDS = String(process.env.DEBUG_COMMANDS || "").toLowerCase() === "true";
+
 function isPresident(userId) {
   return userId === azyron.presidentUserId;
 }
@@ -49,10 +60,10 @@ function saldoEmoji(saldo) {
   return "⏺️";
 }
 
-function formatPunish(ts) {
-  if (!ts) return "N/A";
+function formatPunish(ts, lang) {
+  if (!ts) return lang === "en-US" ? "N/A" : "N/A";
   const n = Number(ts);
-  if (!n || Number.isNaN(n)) return "N/A";
+  if (!n || Number.isNaN(n)) return lang === "en-US" ? "N/A" : "N/A";
   return `<t:${Math.floor(n / 1000)}:R>`;
 }
 
@@ -70,9 +81,10 @@ module.exports = {
   async execute(interaction) {
     const lang = getUserLang(interaction.user.id);
 
-    logger.info(
-      `[CMD] /analisarperfil por ${interaction.user.tag} (${interaction.user.id})`
-    );
+    // ✅ Anti-spam terminal: loga só se DEBUG_COMMANDS=true
+    if (DEBUG_COMMANDS) {
+      logger.info(`[CMD] /analisarperfil por ${interaction.user.tag} (${interaction.user.id})`);
+    }
 
     // ✅ sempre deferReply
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -82,12 +94,18 @@ module.exports = {
     // ========================================================
     if (!isPresident(interaction.user.id) && !hasStaffRole(interaction.member)) {
       return interaction.editReply({
-        content: "⛔ Você não tem permissão para usar este comando.",
+        content:
+          lang === "en-US"
+            ? "⛔ You do not have permission to use this command."
+            : "⛔ Você não tem permissão para usar este comando.",
       });
     }
 
     const target = interaction.options.getUser("jogador");
     const profile = getCompetitiveProfile(target.id);
+
+    // membro do servidor (pra extrair cargos)
+    const targetMember = await interaction.guild.members.fetch(target.id).catch(() => null);
 
     const author = {
       name: target.username,
@@ -95,9 +113,24 @@ module.exports = {
     };
 
     // ========================================================
+    // Roles stats (server)
+    // ========================================================
+    let rolesCount = 0;
+    let highestRoleText = lang === "en-US" ? "N/A" : "N/A";
+
+    if (targetMember) {
+      // remove @everyone
+      rolesCount = Math.max(0, targetMember.roles.cache.size - 1);
+
+      const highestRole = targetMember.roles.highest;
+      if (highestRole?.id && highestRole.id !== interaction.guild.id) {
+        highestRoleText = `${highestRole}`;
+      }
+    }
+
+    // ========================================================
     // Pages (mesmo estilo do /perfil)
     // ========================================================
-
     const pages = [];
 
     // 0: Jogador
@@ -112,7 +145,9 @@ module.exports = {
           {
             name: "",
             inline: true,
-            value: `🏅 **${t(lang, "PROFILE_STAT_SEASON_RANK")}**: Sem Rank`,
+            value: `🏅 **${t(lang, "PROFILE_STAT_SEASON_RANK")}**: ${
+              lang === "en-US" ? "Unranked" : "Sem Rank"
+            }`,
           },
           {
             name: "",
@@ -243,20 +278,51 @@ module.exports = {
       new EmbedBuilder()
         .setAuthor(author)
         .setColor(0xb71c1c)
-        .setDescription(`# 🛡️ Staff — Dados privados`)
-        .addFields(
-          { name: "👤 UserId", value: `\`${target.id}\``, inline: false },
-          { name: "🟣 WO Wins", value: `\`${Number(profile.woWins ?? 0)}\``, inline: true },
-          { name: "⚠️ Advertências", value: `\`${Number(profile.warnings ?? 0)}\``, inline: true },
-          { name: "⛔ Punido até", value: `${formatPunish(profile.punishedUntil)}`, inline: true }
+        .setDescription(
+          lang === "en-US"
+            ? `# 🛡️ Staff — Private data`
+            : `# 🛡️ Staff — Dados privados`
         )
-        .setFooter({ text: "Apenas Staff pode ver." })
+        .addFields(
+          {
+            name: lang === "en-US" ? "👤 UserId" : "👤 UserId",
+            value: `\`${target.id}\``,
+            inline: false,
+          },
+          {
+            name: lang === "en-US" ? "🏷️ Highest role" : "🏷️ Maior cargo",
+            value: `${highestRoleText}`,
+            inline: true,
+          },
+          {
+            name: lang === "en-US" ? "📌 Roles count" : "📌 Quantidade de cargos",
+            value: `\`${rolesCount}\``,
+            inline: true,
+          },
+          {
+            name: lang === "en-US" ? "🟣 WO Wins" : "🟣 WO Wins",
+            value: `\`${Number(profile.woWins ?? 0)}\``,
+            inline: true,
+          },
+          {
+            name: lang === "en-US" ? "⚠️ Warnings" : "⚠️ Advertências",
+            value: `\`${Number(profile.warnings ?? 0)}\``,
+            inline: true,
+          },
+          {
+            name: lang === "en-US" ? "⛔ Punished until" : "⛔ Punido até",
+            value: `${formatPunish(profile.punishedUntil, lang)}`,
+            inline: true,
+          }
+        )
+        .setFooter({
+          text: lang === "en-US" ? "Only Staff can see this." : "Apenas Staff pode ver.",
+        })
     );
 
     // ========================================================
     // Botões (2 rows para não ultrapassar limite de 5)
     // ========================================================
-
     const tabsRow1 = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId("profile_page_player")

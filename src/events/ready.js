@@ -1,64 +1,60 @@
 // src/events/ready.js
 
-// ========================================================
-// Ready Event - Jarvis
-//
-// ✅ Regras do Word:
-// - Ao ligar o bot: exibir log bonito
-// - Painéis fixos:
-//    - Idioma: verificar se existe no canal, se não existir -> postar
-//    - Gameplay: (será no próximo arquivo/etapa do v1.2)
-// - Não spammar
-// ========================================================
-
 const logger = require("../core/logger");
+const botConfig = require("../config/bot");
 const azyron = require("../config/azyronIds");
-const { buildLanguagePanel } = require("../modules/global/language/language.panel");
 
-async function ensureLanguagePanel(client) {
+const { ensureLanguagePanel } = require("../modules/global/language/language.panel");
+const { buildGameplayPanel } = require("../modules/global/gameplay/gameplay.panel");
+
+async function hasPanelMessage(channel, clientUserId, uniqueTextA, uniqueTextB) {
   try {
-    const channelId = azyron.channels.language;
-    const channel = await client.channels.fetch(channelId).catch(() => null);
-    if (!channel) {
-      logger.warn(`[PANELS] Canal de idioma não encontrado: ${channelId}`);
-      return;
-    }
-
-    // Buscar mensagens recentes e detectar se já existe painel
-    const msgs = await channel.messages.fetch({ limit: 30 }).catch(() => null);
-    if (!msgs) return;
-
-    const botId = client.user.id;
-
-    const alreadyExists = msgs.some((m) => {
-      if (!m.author || m.author.id !== botId) return false;
-      if (!m.components?.length) return false;
-
-      // checar se contém botões esperados
-      const hasLangButtons = m.components.some((row) =>
-        row.components?.some((c) => c.customId === "lang_set_pt" || c.customId === "lang_set_en")
-      );
-
-      return hasLangButtons;
+    const messages = await channel.messages.fetch({ limit: 30 });
+    return messages.some((m) => {
+      if (!m.author || m.author.id !== clientUserId) return false;
+      const desc = m.embeds?.[0]?.description || "";
+      return desc.includes(uniqueTextA) && desc.includes(uniqueTextB);
     });
-
-    if (alreadyExists) {
-      logger.info("[PANELS] Painel de idioma já existe. Mantendo.");
-      return;
-    }
-
-    const panel = buildLanguagePanel();
-    await channel.send(panel);
-
-    logger.info("[PANELS] ✅ Painel de idioma postado automaticamente.");
   } catch (err) {
-    logger.error("[PANELS] Erro ao garantir painel de idioma.", err);
+    logger.error("Erro buscando mensagens do canal (painéis fixos).", err);
+    return false;
   }
 }
 
 module.exports = async (client) => {
-  logger.info(`✅ Jarvis ONLINE — ${require("../config/bot").version} 👑 King N`);
-  logger.info(`Logado como: ${client.user.tag}`);
+  try {
+    logger.info("✅ Jarvis ONLINE — " + botConfig.version + " 👑 King N");
+    logger.info("Logado como: " + client.user.tag);
 
-  await ensureLanguagePanel(client);
+    // painel idioma (v1.2) — agora sem spam
+    try {
+      await ensureLanguagePanel(client);
+    } catch (err) {
+      logger.error("Falha ao garantir painel de idioma.", err);
+    }
+
+    // painel gameplay (v1.3)
+    const styleChannelId = azyron.channels.style;
+    if (!styleChannelId) return;
+
+    const channel = await client.channels.fetch(styleChannelId).catch(() => null);
+    if (!channel) return;
+
+    const exists = await hasPanelMessage(
+      channel,
+      client.user.id,
+      "Qual seu estilo de jogo?",
+      "What’s your playstyle?"
+    );
+
+    if (!exists) {
+      logger.warn("Painel Gameplay não encontrado. Postando novamente...");
+      await channel.send(buildGameplayPanel());
+      logger.info("✅ Painel Gameplay postado com sucesso.");
+    } else {
+      logger.info("✅ Painel Gameplay já existe. Nenhuma ação necessária.");
+    }
+  } catch (err) {
+    logger.error("Erro no evento ready.", err);
+  }
 };

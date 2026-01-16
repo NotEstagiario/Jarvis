@@ -14,7 +14,9 @@
 //
 // ✅ Anti "The application did not respond":
 // - SEMPRE usar deferReply({ ephemeral: true }) no início
-// - Logs de debug no começo do execute
+//
+// ⚠️ Anti-SPAM de terminal:
+// - Logs só se DEBUG_COMMANDS=true no .env
 // ========================================================
 
 const {
@@ -30,6 +32,13 @@ const azyron = require("../../config/azyronIds");
 const { t } = require("../../i18n");
 const { getUserLang } = require("../../utils/lang");
 const { getCompetitiveProfile } = require("../../modules/global/profiles/profile.service");
+
+// ========================================================
+// DEBUG anti-spam (Word)
+// - Em produção NÃO pode poluir terminal com clique de comando
+// - Para ativar logs: DEBUG_COMMANDS=true no .env
+// ========================================================
+const DEBUG_COMMANDS = String(process.env.DEBUG_COMMANDS || "").toLowerCase() === "true";
 
 // cooldown (memória)
 const profileCooldown = new Map();
@@ -52,9 +61,11 @@ module.exports = {
     const lang = getUserLang(userId);
 
     // ========================================================
-    // DEBUG: log do comando (pra nunca ficar "silencioso")
+    // DEBUG: log do comando (se ativado)
     // ========================================================
-    logger.info(`[CMD] /perfil por ${interaction.user.tag} (${userId})`);
+    if (DEBUG_COMMANDS) {
+      logger.info(`[CMD] /perfil por ${interaction.user.tag} (${userId})`);
+    }
 
     // ✅ Sempre deferReply para impedir timeout de 3s
     await interaction.deferReply({ ephemeral: true });
@@ -103,6 +114,11 @@ module.exports = {
         iconURL: interaction.user.displayAvatarURL(),
       };
 
+      // ========================================================
+      // Helper: texto de rank default
+      // ========================================================
+      const seasonRankText = lang === "en-US" ? "Unranked" : "Sem Rank";
+
       // página 1 - jogador
       pages.push(
         new EmbedBuilder()
@@ -115,7 +131,7 @@ module.exports = {
             {
               name: "",
               inline: true,
-              value: `🏅 **${t(lang, "PROFILE_STAT_SEASON_RANK")}**: Sem Rank`,
+              value: `🏅 **${t(lang, "PROFILE_STAT_SEASON_RANK")}**: ${seasonRankText}`,
             },
             {
               name: "",
