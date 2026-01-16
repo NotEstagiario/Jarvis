@@ -19,6 +19,11 @@ const readyEvent = require("./events/ready");
 const interactionCreateEvent = require("./events/interactionCreate");
 
 // ========================================================
+// Versão do bot (Word)
+// ========================================================
+const JARVIS_VERSION = "1.4";
+
+// ========================================================
 // Captura de erros globais (evita "clean exit" silencioso)
 // ========================================================
 
@@ -41,7 +46,7 @@ if (!process.env.DISCORD_TOKEN) {
 
 logger.info("===============================================");
 logger.info(`🤖 ${botConfig.name} iniciando...`);
-logger.info(`📌 Versão atual: ${botConfig.version}`);
+logger.info(`📌 Versão atual: ${JARVIS_VERSION}`);
 logger.info("===============================================");
 
 // ========================================================
