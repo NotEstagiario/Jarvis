@@ -133,3 +133,12 @@ CREATE TABLE IF NOT EXISTS competitive_match_invites (
   expiresAt INTEGER NOT NULL,
   updatedAt INTEGER NOT NULL
 );
+
+-- ========================================================
+-- Premium Reset Cooldown (v2.1)
+-- 1 reset por usuário a cada 31 dias
+-- ========================================================
+CREATE TABLE IF NOT EXISTS premium_profile_resets (
+  userId TEXT PRIMARY KEY,
+  lastResetAt INTEGER NOT NULL
+);

@@ -95,5 +95,35 @@
   "MATCH_ACTIVE_PLAYERS": "Players",
   "MATCH_ACTIVE_TOKEN": "Token",
   "MATCH_ACTIVE_TIME": "Tempo",
-  "MATCH_ACTIVE_TIME_VALUE": "⏳ 30 minutos para registrar o resultado."
+  "MATCH_ACTIVE_TIME_VALUE": "⏳ 30 minutos para registrar o resultado.",
+
+  "premiumReset.title": "RESET PREMIUM",
+  "premiumReset.desc": "Essa função é exclusiva para jogadores **Premium** ou **Mega Booster**.\n\nEla irá resetar TODAS as suas estatísticas competitivas.\n\n⚠️ Limite: **1 reset a cada 31 dias**.",
+  "premiumReset.btn.premium": "Premium",
+  "premiumReset.btn.cancel": "Cancelar",
+  "premiumReset.notCompetitive": "Você precisa ser **Competitivo** para usar esse comando.",
+  "premiumReset.cooldown": "Você já utilizou seu reset premium recentemente.\n\n⏳ Você poderá usar novamente em: **{when}**.",
+  "premiumReset.done": "✅ Reset premium realizado com sucesso. Boa sorte no recomeço!",
+
+  "premiumReset.noAccessEmbed": "# <:az_premium:1462033257557266497> Resetar meu Perfil\n\nInfelizmente essa mecânica é disponível apenas é <@&1459815660933877820> ou <@&1453129423753838602>, caso queira contribuir com o nosso projeto, entre em contato com um dos administradores do projeto.",
+  "premiumReset.confirmEmbed": "# {emoji} Resetar meu Perfil\n\n**Primeiramente agradeço sua ajuda, com podemos cada dia mais melhorar nosso projeto, então agradeço sua contribuição e valorização ao nosso servidor.**\n\nEssa função lhe permite fazer um reset de todas as suas estatísticas competitivas, fazer um recomeço.\n\nGostaria de Resetar seu Perfil?",
+
+  "premiumReset.successEmbed": "# {emoji} Reset realizado com sucesso!\n\n✅ Seu perfil competitivo foi resetado.\n\n⏳ **Cooldown:** este recurso ficará indisponível até:\n📌 {whenFull}\n🕒 {whenRelative}\n\nUse esse tempo com sabedoria… e volte mais forte.",
+  "premiumReset.cancelEmbed": "# {emoji} Processo finalizado\n\n✅ Tudo certo.\n\nVocê decidiu **não resetar** o seu perfil, então nada foi alterado.\n\nSe mudar de ideia, use **/resetpremium** novamente.",
+  "premiumReset.cooldownEmbed": "# {emoji} Reset indisponível (Cooldown)\n\nVocê já usou esse recurso.\n\nPor gentileza aguarde até essa função ficar disponível novamente.\n\n⏳ Disponível em:\n📌 {whenFull}\n🕒 {whenRelative}",
+
+  "premiumReset.done.dynamic": "{emoji} ✅ Seu reset foi realizado com sucesso.\n\nBoa sorte no seu recomeço!",
+
+  "premiumReset.trashTalk.pt": [
+    "Você quase foi Premium… *quase*. 🥱 Quer esse reset? Vira Premium ou dá um Boost.",
+    "Botão Premium bloqueado. Seu cargo gritou: 'sou do free plan'. 💀",
+    "Sem Premium, sem reset. Aqui é Azyron — até o bot tem padrão. 😈",
+    "Quer resetar? Primeiro compra a coragem: Premium/Mega Booster. 🌟",
+    "Você clicou com vontade… mas a carteira não acompanhou. 🤝",
+    "Função Premium detectada. Acesso negado por pobreza competitiva. 😭",
+    "Seu rank é competitivo… mas o reset é de quem investe. Dá Boost e conversa comigo. 😌",
+    "Isso aqui não é bug. É paywall com personalidade. <:az_premium:1462033257557266497>",
+    "Você tentou acessar Premium sem Premium… ousado. Agora vira Premium e tenta de novo. 😈",
+    "Quer desbloquear essa skill? Premium ou Mega Booster. Sem isso, só resta chorar. 💅"
+  ]
 }

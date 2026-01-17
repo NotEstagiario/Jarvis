@@ -34,6 +34,17 @@ const {
 } = require("../../modules/global/gameplay/gameplay.service");
 
 // ========================================================
+// ✅ Premium Reset service (require no topo -> sem erro no click)
+// ========================================================
+let premiumResetService = null;
+try {
+  premiumResetService = require("../../modules/global/premium/premiumReset.service");
+} catch (err) {
+  logger.error("Premium Reset service não foi carregado. Verifique path:", err);
+  premiumResetService = null;
+}
+
+// ========================================================
 // DEBUG anti-spam (Word)
 // - Em produção NÃO pode poluir terminal com clique de botão
 // - Para ativar logs: DEBUG_BUTTONS=true no .env
@@ -61,6 +72,12 @@ function pickRandom(arr) {
 // ========================================================
 const EMOJI_COMPETITIVE = "<:bensa_evil:1453193952277827680>";
 const EMOJI_CASUAL = "<:bensa_laughter:1453194053339316346>";
+
+const EMOJI_PREMIUM = "<:az_premium:1462033257557266497>";
+const EMOJI_MEGA = "<:az_mega:1462033319624572958>";
+
+const COLOR_PREMIUM = 0xe2b719;
+const COLOR_MEGA = 0xff5dd6;
 
 // ========================================================
 // Mensagens (rotação) — escolher estilo (15 cada)
@@ -204,6 +221,17 @@ function isPresident(userId) {
 }
 
 // ========================================================
+// Helper - escolher "skin" premium (premium vs mega)
+// ========================================================
+function getPremiumSkin(member) {
+  const hasMega = member?.roles?.cache?.has(azyron.roles.megaBooster);
+  if (hasMega) {
+    return { type: "MEGA", color: COLOR_MEGA, emoji: EMOJI_MEGA };
+  }
+  return { type: "PREMIUM", color: COLOR_PREMIUM, emoji: EMOJI_PREMIUM };
+}
+
+// ========================================================
 // Handler principal
 // ========================================================
 module.exports = async (interaction) => {
@@ -213,9 +241,7 @@ module.exports = async (interaction) => {
   const userId = interaction.user.id;
   const lang = getUserLang(userId);
 
-  // ========================================================
   // ✅ /perfil buttons (LOCAL collector)
-  // ========================================================
   if (customId.startsWith("profile_")) return;
 
   // ✅ Anti-spam terminal: loga só se DEBUG_BUTTONS=true
@@ -224,7 +250,7 @@ module.exports = async (interaction) => {
   }
 
   // ========================================================
-  // /desafiar (v2.0) + handshake PENDING_ACCEPT
+  // /desafiar (v2.0)
   // ========================================================
   if (
     customId === "challenge_have_opponent" ||
@@ -268,6 +294,139 @@ module.exports = async (interaction) => {
   }
 
   // ========================================================
+  // PREMIUM RESET (v2.1 FINAL)
+  // ========================================================
+  if (
+    customId === "resetpremium_premium" ||
+    customId === "resetpremium_confirm_yes" ||
+    customId === "resetpremium_confirm_no"
+  ) {
+    try {
+      const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+
+      if (!premiumResetService) {
+        return safeReply(interaction, {
+          ephemeral: true,
+          content: t(lang, "COMMON_ERROR_GENERIC"),
+        });
+      }
+
+      const { canUsePremiumReset, markPremiumResetUsed, COOLDOWN_MS } = premiumResetService;
+      const { resetCompetitivePublicStats } = require("../../modules/global/profiles/profile.service");
+
+      const member = interaction.member;
+
+      const hasPremium = member?.roles?.cache?.has(azyron.roles.premium);
+      const hasMega = member?.roles?.cache?.has(azyron.roles.megaBooster);
+      const hasAny = hasPremium || hasMega;
+
+      // "Não" -> embed finalizada sem reset
+      if (customId === "resetpremium_confirm_no") {
+        const skin = getPremiumSkin(member);
+
+        const cancelEmbed = new EmbedBuilder()
+          .setColor(skin.color)
+          .setDescription(
+            t(lang, "premiumReset.cancelEmbed", {
+              emoji: skin.emoji,
+            })
+          );
+
+        return interaction.update({ embeds: [cancelEmbed], components: [] });
+      }
+
+      // Clicou Premium
+      if (customId === "resetpremium_premium") {
+        // sem premium/mega -> trash talk
+        if (!hasAny) {
+          const poolKey = lang === "en-US" ? "premiumReset.trashTalk.en" : "premiumReset.trashTalk.pt";
+          const list = t(lang, poolKey);
+          const msg = Array.isArray(list) ? pickRandom(list) : "Premium locked.";
+
+          return safeReply(interaction, { ephemeral: true, content: `❌ ${msg}` });
+        }
+
+        // com premium/mega -> abre confirmação bonitona
+        const skin = getPremiumSkin(member);
+
+        const embed = new EmbedBuilder()
+          .setColor(skin.color)
+          .setDescription(
+            t(lang, "premiumReset.confirmEmbed", {
+              emoji: skin.emoji,
+            })
+          );
+
+        const row = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId("resetpremium_confirm_yes")
+            .setLabel(lang === "en-US" ? "Yes" : "Sim")
+            .setStyle(ButtonStyle.Success),
+
+          new ButtonBuilder()
+            .setCustomId("resetpremium_confirm_no")
+            .setLabel(lang === "en-US" ? "No" : "Não")
+            .setStyle(ButtonStyle.Danger)
+        );
+
+        return interaction.update({ embeds: [embed], components: [row] });
+      }
+
+      // "Sim" -> reset
+      if (customId === "resetpremium_confirm_yes") {
+        const skin = getPremiumSkin(member);
+
+        // ========================================================
+        // ✅ BYPASS DO PRESIDENTE (TESTES)
+        // ========================================================
+        if (!isPresident(userId)) {
+          const cd = canUsePremiumReset(userId);
+          if (!cd.ok) {
+            const unix = Math.floor(cd.nextAt / 1000);
+
+            const embed = new EmbedBuilder()
+              .setColor(skin.color)
+              .setDescription(
+                t(lang, "premiumReset.cooldownEmbed", {
+                  emoji: skin.emoji,
+                  whenFull: `<t:${unix}:F>`,
+                  whenRelative: `<t:${unix}:R>`,
+                })
+              );
+
+            return interaction.update({ embeds: [embed], components: [] });
+          }
+        }
+
+        // reset stats + marca uso
+        resetCompetitivePublicStats(userId);
+        const usedAt = markPremiumResetUsed(userId);
+
+        const nextAt = usedAt + COOLDOWN_MS;
+        const unix = Math.floor(nextAt / 1000);
+
+        const okEmbed = new EmbedBuilder()
+          .setColor(skin.color)
+          .setDescription(
+            t(lang, "premiumReset.successEmbed", {
+              emoji: skin.emoji,
+              whenFull: `<t:${unix}:F>`,
+              whenRelative: `<t:${unix}:R>`,
+            })
+          );
+
+        return interaction.update({ embeds: [okEmbed], components: [] });
+      }
+    } catch (err) {
+      logger.error("Erro no Premium Reset", err);
+      return safeReply(interaction, {
+        ephemeral: true,
+        content: t(lang, "COMMON_ERROR_GENERIC"),
+      });
+    }
+  }
+
+  // ========================================================
   // LANGUAGE PANEL BUTTONS (v1.2)
   // ========================================================
   if (customId === "lang_set_ptbr" || customId === "lang_set_enus") {
@@ -278,7 +437,7 @@ module.exports = async (interaction) => {
         canChangeLanguage,
         getTimeLeftToChangeLanguage,
         markLanguageChange,
-        setUserLanguageDb, // ✅ novo
+        setUserLanguageDb,
       } = require("../../modules/global/language/language.service");
 
       if (!isPresident(userId)) {
@@ -292,10 +451,8 @@ module.exports = async (interaction) => {
         }
       }
 
-      // runtime
       setUserLang(userId, chosen);
 
-      // ✅ persistente no SQLite (users.language)
       try {
         setUserLanguageDb(userId, chosen);
       } catch (e) {
@@ -335,36 +492,27 @@ module.exports = async (interaction) => {
           ? GAMEPLAY_STYLES.CASUAL
           : GAMEPLAY_STYLES.COMPETITIVE;
 
-      // ========================================================
       // Pega member + roles atuais
-      // ========================================================
       const member = await interaction.guild.members.fetch(userId);
 
-      const roleCasual = azyron.roles.casual; // 1457362198216179961
-      const roleCompetitive = azyron.roles.competitive; // 1457347614147215391
+      const roleCasual = azyron.roles.casual;
+      const roleCompetitive = azyron.roles.competitive;
 
       const hasCasualRole = roleCasual ? member.roles.cache.has(roleCasual) : false;
       const hasCompetitiveRole = roleCompetitive ? member.roles.cache.has(roleCompetitive) : false;
       const hasAnyGameplayRole = hasCasualRole || hasCompetitiveRole;
 
-      // ========================================================
-      // Se DB diz que tem escolha, mas ele não tem role nenhuma:
-      // -> libera escolher de novo
-      // ========================================================
+      // Se DB diz que tem escolha, mas ele não tem role nenhuma -> libera
       const dbStyle = getGameplayStyle(userId);
       if (dbStyle && !hasAnyGameplayRole) {
         clearGameplayStyle(userId);
       }
 
-      // ========================================================
       // Seleciona arrays por idioma (EN / PT)
-      // ========================================================
       const choosePool = lang === "en-US" ? chooseMsgsEN : chooseMsgsPT;
       const lockedPool = lang === "en-US" ? lockedMsgsEN : lockedMsgsPT;
 
-      // ========================================================
       // Presidente = bypass total
-      // ========================================================
       if (isPresident(userId)) {
         const forced = setGameplayStyleForce(userId, chosenStyle);
 
@@ -389,9 +537,7 @@ module.exports = async (interaction) => {
         return safeReply(interaction, { ephemeral: true, content: `✅ ${msg}` });
       }
 
-      // ========================================================
       // Normal: escolher UMA vez
-      // ========================================================
       const result = setGameplayStyleOnce(userId, chosenStyle);
 
       if (!result.ok && result.reason === "ALREADY_SET") {

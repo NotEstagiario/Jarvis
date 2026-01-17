@@ -41,6 +41,10 @@ module.exports = {
     competitive: "1457347614147215391",
     casual: "1457362198216179961",
 
+    // PREMIUM SYSTEM (v2.1)
+    premium: "1459815660933877820",
+    megaBooster: "1453129423753838602",
+
     // STAFF (obrigatório para comandos staff, ex: /analisarperfil)
     staff: "1453136651940270296",
   },

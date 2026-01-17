@@ -95,5 +95,35 @@
   "MATCH_ACTIVE_PLAYERS": "Players",
   "MATCH_ACTIVE_TOKEN": "Token",
   "MATCH_ACTIVE_TIME": "Time",
-  "MATCH_ACTIVE_TIME_VALUE": "⏳ 30 minutes to register the result."
+  "MATCH_ACTIVE_TIME_VALUE": "⏳ 30 minutes to register the result.",
+
+  "premiumReset.title": "PREMIUM RESET",
+  "premiumReset.desc": "This feature is exclusive to **Premium** or **Mega Booster** players.\n\nIt will reset ALL of your competitive statistics.\n\n⚠️ Limit: **1 reset every 31 days**.",
+  "premiumReset.btn.premium": "Premium",
+  "premiumReset.btn.cancel": "Cancel",
+  "premiumReset.notCompetitive": "You must be **Competitive** to use this command.",
+  "premiumReset.cooldown": "You have already used your Premium reset recently.\n\n⏳ You can use it again at: **{when}**.",
+  "premiumReset.done": "✅ Premium reset completed successfully. Good luck on your comeback!",
+
+  "premiumReset.noAccessEmbed": "# <:az_premium:1462033257557266497> Reset my Profile\n\nUnfortunately, this feature is only available for <@&1459815660933877820> or <@&1453129423753838602>. If you want to support our project, please contact one of our administrators.",
+  "premiumReset.confirmEmbed": "# {emoji} Reset my Profile\n\n**First of all: thank you for supporting our project. With your help we improve Azyron every day.**\n\nThis feature allows you to reset all your competitive statistics and start fresh.\n\nDo you want to reset your profile?",
+
+  "premiumReset.successEmbed": "# {emoji} Reset completed successfully!\n\n✅ Your competitive profile has been reset.\n\n⏳ **Cooldown:** this feature will be unavailable until:\n📌 {whenFull}\n🕒 {whenRelative}\n\nUse this time wisely… and come back stronger.",
+  "premiumReset.cancelEmbed": "# {emoji} Process finished\n\n✅ All good.\n\nYou chose **not to reset** your profile, so nothing was changed.\n\nIf you change your mind, use **/resetpremium** again.",
+  "premiumReset.cooldownEmbed": "# {emoji} Reset unavailable (Cooldown)\n\nYou already used this feature.\n\nPlease wait until it becomes available again.\n\n⏳ Available at:\n📌 {whenFull}\n🕒 {whenRelative}",
+
+  "premiumReset.done.dynamic": "{emoji} ✅ Your reset has been successfully completed.\n\nGood luck on your comeback!",
+
+  "premiumReset.trashTalk.en": [
+    "You were *this close* to Premium… almost. 🥱 Want this reset? Go Premium or drop a Boost.",
+    "'Premium' button locked. Your role just screamed: 'I’m on the free plan.' 💀",
+    "No Premium, no reset. This is Azyron — even the bot has standards. 😈",
+    "Wanna reset? Cool. First buy the courage: Premium/Mega Booster. 🌟",
+    "You clicked with confidence… but your wallet didn’t back it up. 🤝",
+    "Premium feature detected. Access denied due to competitive poverty. 😭",
+    "Your rank is competitive… but the reset belongs to those who invest. Drop a Boost and talk to me. 😌",
+    "This isn’t a bug. It’s a paywall with personality. <:az_premium:1462033257557266497>",
+    "You tried to access Premium without Premium… bold. Now go Premium and try again. 😈",
+    "Wanna unlock this skill? Premium or Mega Booster. Otherwise… just cope. 💅"
+  ]
 }

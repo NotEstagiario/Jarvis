@@ -21,7 +21,7 @@ const interactionCreateEvent = require("./events/interactionCreate");
 // ========================================================
 // Versão do bot (Word)
 // ========================================================
-const JARVIS_VERSION = "2.0";
+const JARVIS_VERSION = "2.1";
 
 // ========================================================
 // Captura de erros globais (evita "clean exit" silencioso)

@@ -69,8 +69,43 @@ function getCompetitiveProfile(userId) {
   return db.prepare("SELECT * FROM competitive_profile WHERE userId = ?").get(userId);
 }
 
+// ========================================================
+// Reset stats (v2.1)
+// Usado por /resetpremium e por futuros resets staff.
+// ========================================================
+function resetCompetitivePublicStats(userId) {
+  const db = getDb();
+  ensureCompetitiveProfile(userId);
+
+  const t = now();
+
+  // ⚠️ não resetar campos staff (warnings/woWins/punishedUntil)
+  // Premium é feature do usuário: apenas stats competitivas.
+  db.prepare(
+    `
+    UPDATE competitive_profile
+    SET
+      xp = 0,
+      wins = 0,
+      losses = 0,
+      draws = 0,
+      currentStreak = 0,
+      bestStreak = 0,
+      goalsScored = 0,
+      goalsConceded = 0,
+      badges = NULL,
+      nemesisId = NULL,
+      favoriteId = NULL,
+      bestWinText = NULL,
+      updatedAt = ?
+    WHERE userId = ?
+    `
+  ).run(t, userId);
+}
+
 module.exports = {
   ensureUser,
   ensureCompetitiveProfile,
   getCompetitiveProfile,
+  resetCompetitivePublicStats,
 };
