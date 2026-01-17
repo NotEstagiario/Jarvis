@@ -7,7 +7,7 @@
 // - Apenas encaminhar para handlers específicos.
 // ========================================================
 
-const logger = require("../logger");
+const logger = require("../logger"); // ✅ CORRETO (antes estava ./core/logger e quebrava tudo)
 const commandsRouter = require("./commands.router");
 const buttonsRouter = require("./buttons.router");
 const modalsRouter = require("./modals.router");

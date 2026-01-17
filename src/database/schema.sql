@@ -61,8 +61,75 @@ CREATE TABLE IF NOT EXISTS competitive_profile (
 -- ========================================================
 CREATE TABLE IF NOT EXISTS competitive_locks (
   userId TEXT PRIMARY KEY,
-  lockType TEXT NOT NULL,         -- active | pending | searching
+  lockType TEXT NOT NULL,         -- active | searching | pending_result | pending_review
   token TEXT,
   createdAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL
+);
+
+-- ========================================================
+-- Competitive Matches (v2.0)
+--
+-- status:
+-- - active (em vigor)
+-- - cancelled
+-- - finished_ok
+-- - finished_void
+-- - pending_result (aguardando confirmação adversário)
+-- - pending_review (staff review)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS competitive_matches (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  token TEXT NOT NULL UNIQUE,
+
+  challengerId TEXT NOT NULL,
+  opponentId TEXT NOT NULL,
+
+  status TEXT NOT NULL DEFAULT 'active',
+
+  createdAt INTEGER NOT NULL,
+  startedAt INTEGER NOT NULL,
+  expiresAt INTEGER NOT NULL,
+
+  pausedAt INTEGER,
+  pausedReason TEXT,
+
+  cancelledById TEXT,
+  cancelledReason TEXT,
+
+  updatedAt INTEGER NOT NULL
+);
+
+-- ========================================================
+-- Match Events (log interno para auditoria)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS competitive_match_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  token TEXT NOT NULL,
+  type TEXT NOT NULL,
+  payload TEXT,
+  createdAt INTEGER NOT NULL
+);
+
+-- ========================================================
+-- Match Invites (v2.0 handshake)
+-- status:
+-- - pending
+-- - accepted
+-- - declined
+-- - expired
+-- ========================================================
+CREATE TABLE IF NOT EXISTS competitive_match_invites (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+  challengerId TEXT NOT NULL,
+  opponentId TEXT NOT NULL,
+
+  status TEXT NOT NULL DEFAULT 'pending',
+
+  channelId TEXT NOT NULL,
+
+  createdAt INTEGER NOT NULL,
+  expiresAt INTEGER NOT NULL,
   updatedAt INTEGER NOT NULL
 );

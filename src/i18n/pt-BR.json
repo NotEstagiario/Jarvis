@@ -42,5 +42,58 @@
 
   "LANG_CHANGED": "✅ Idioma alterado com sucesso para **Português**.",
   "LANG_CHANGED_EN": "✅ Idioma alterado com sucesso para **English**.",
-  "LANG_COOLDOWN": "⏳ Você só poderá alterar seu idioma novamente em **{time}**."
+  "LANG_COOLDOWN": "⏳ Você só poderá alterar seu idioma novamente em **{time}**.",
+
+  "COMP_ONLY_GUILD": "⚠️ Esse comando só funciona em servidor.",
+  "COMP_ONLY_CONFRONTOS": "⚠️ Este comando só pode ser usado no canal de confrontos do competitivo.",
+  "COMP_ONLY_ROLE": "⚠️ Você não possui o cargo do competitivo.",
+  "COMP_PUNISHED": "⛔ Você está punido e não pode iniciar/aceitar confrontos por mais **{seconds}s**.",
+  "COMP_LOCKED": "⛔ Você já possui um confronto em andamento (**{type}**). Token: **{token}**.",
+
+  "COMP_LOCKED_PENDING_MENU": "😐 Calma aí.\nVocê já abriu o menu do desafio.\n➡️ Agora escolhe logo: **Já tenho adversário** ou **Procurar adversário**.\n\nRanked não é lugar de ficar abrindo menu igual catálogo.",
+  "COMP_LOCKED_PENDING_ASK": "📌 Tu já apertou **Já tenho adversário**.\n➡️ Então para de enrolar e manda o **@ do adversário** no chat.\n\n⏳ Você tem **60 segundos** antes de eu desistir de você.",
+  "COMP_LOCKED_PENDING_CONFIRM": "😈 Agora não foge não.\nVocê já escolheu o adversário.\n➡️ Aperta **Confirmar** pra começar ou **Cancelar** pra assumir que arregou.",
+  "COMP_LOCKED_PENDING_INVITE": "📩 O convite já foi enviado.\n➡️ Agora segura a ansiedade e espera o adversário **aceitar ou recusar**.\n\nQuer abrir outro desafio agora? Aí é desespero.",
+
+  "CHALLENGE_BTN_HAVE_OPP": "Já tenho adversário",
+  "CHALLENGE_BTN_SEARCH_OPP": "Procurar adversário",
+  "CHALLENGE_BTN_CONFIRM": "Confirmar",
+  "CHALLENGE_BTN_CANCEL": "Cancelar",
+  "CHALLENGE_BTN_ACCEPT": "Aceitar confronto",
+  "CHALLENGE_BTN_DECLINE": "Recusar",
+
+  "CHALLENGE_START_TITLE": "⚔️ Sistema de Confrontos",
+  "CHALLENGE_START_DESC": "Olá, vi que você quer subir no ranked, mas precisa saber: você já tem algum adversário ou gostaria de procurar por um?",
+
+  "CHALLENGE_ASK_TITLE": "🎯 Envie seu adversário",
+  "CHALLENGE_ASK_DESC": "Envie uma mensagem mencionando seu adversário (ex: @player).\n\n📌 Se mencionar várias pessoas, apenas o **primeiro @** será considerado.\n⏳ Você tem **60 segundos**.",
+
+  "CHALLENGE_MODAL_INVALID": "⚠️ Informe um adversário válido (mencione @ ou cole o ID).",
+  "CHALLENGE_SELF": "⚠️ Você não pode desafiar a si mesmo.",
+  "CHALLENGE_OPP_NOT_FOUND": "⚠️ Não consegui encontrar esse adversário no servidor.",
+
+  "CHALLENGE_CONFIRM_TITLE": "✅ Confirmar adversário",
+  "CHALLENGE_CONFIRM_DESC": "Confirma que deseja iniciar um confronto contra {opponent}?",
+  "CHALLENGE_EXPIRED": "⚠️ Sua confirmação expirou. Use **/desafiar** novamente.",
+  "CHALLENGE_OPP_LOCKED": "⚠️ Esse adversário já possui um confronto/trava ativa.",
+
+  "CHALLENGE_INVITE_SENT": "📩 Convite enviado para {opponent}. Agora o confronto só entra em vigor quando ele **aceitar**.",
+  "CHALLENGE_INVITE_TITLE": "⚔️ Convite de Confronto",
+  "CHALLENGE_INVITE_DESC": "{challenger} quer iniciar um confronto com você.\n\n✅ Aceite para iniciar a partida.\n❌ Recuse para cancelar o convite.",
+  "CHALLENGE_INVITE_PLAYERS": "Players",
+  "CHALLENGE_INVITE_EXPIRES": "Expira",
+  "CHALLENGE_INVITE_EXPIRED": "⏳ Convite expirado.",
+  "CHALLENGE_INVITE_INVALID": "⚠️ Esse convite não existe (ou já foi limpo).",
+  "CHALLENGE_INVITE_ALREADY_HANDLED": "⚠️ Esse convite já foi resolvido.",
+  "CHALLENGE_INVITE_TOO_LATE": "⏳ Você demorou demais. Esse convite expirou.",
+  "CHALLENGE_INVITE_DECLINED_OK": "❌ Convite recusado.",
+
+  "CHALLENGE_CREATED": "✅ Confronto criado e em vigor. Token: **{token}**.",
+
+  "MATCH_ACTIVE_TITLE": "⚔️ Confronto em vigor",
+  "MATCH_ACTIVE_DESC": "A partida foi iniciada com sucesso.",
+  "MATCH_ACTIVE_PLAYERS": "Players",
+  "MATCH_ACTIVE_TOKEN": "Token",
+  "MATCH_ACTIVE_TIME": "Tempo",
+  "MATCH_ACTIVE_TIME_VALUE": "⏳ 30 minutos para registrar o resultado."
 }

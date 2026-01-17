@@ -42,5 +42,58 @@
 
   "LANG_CHANGED": "✅ Language successfully changed to **English**.",
   "LANG_CHANGED_PT": "✅ Language successfully changed to **Português**.",
-  "LANG_COOLDOWN": "⏳ You can change your language again in **{time}**."
+  "LANG_COOLDOWN": "⏳ You can change your language again in **{time}**.",
+
+  "COMP_ONLY_GUILD": "⚠️ This command only works inside a server.",
+  "COMP_ONLY_CONFRONTOS": "⚠️ This command can only be used in the competitive confrontos channel.",
+  "COMP_ONLY_ROLE": "⚠️ You don't have the competitive role.",
+  "COMP_PUNISHED": "⛔ You are punished and can't start/accept matches for **{seconds}s**.",
+  "COMP_LOCKED": "⛔ You already have an ongoing lock (**{type}**). Token: **{token}**.",
+
+  "COMP_LOCKED_PENDING_MENU": "⛔ You already opened the **challenge menu**.\n➡️ Choose **I have an opponent** or **Search opponent** before starting another one.",
+  "COMP_LOCKED_PENDING_ASK": "⛔ You’re in the middle of the challenge.\n➡️ Send the opponent **@ mention** in chat (you have **60s**).",
+  "COMP_LOCKED_PENDING_CONFIRM": "⛔ You already picked the opponent.\n➡️ Now commit: **Confirm** or **Cancel** using the buttons.",
+  "COMP_LOCKED_PENDING_INVITE": "⛔ You already sent an invite.\n➡️ Wait for the opponent to **accept or decline** before starting another challenge.",
+
+  "CHALLENGE_BTN_HAVE_OPP": "I have an opponent",
+  "CHALLENGE_BTN_SEARCH_OPP": "Search opponent",
+  "CHALLENGE_BTN_CONFIRM": "Confirm",
+  "CHALLENGE_BTN_CANCEL": "Cancel",
+  "CHALLENGE_BTN_ACCEPT": "Accept match",
+  "CHALLENGE_BTN_DECLINE": "Decline",
+
+  "CHALLENGE_START_TITLE": "⚔️ Match System",
+  "CHALLENGE_START_DESC": "Hi! I saw you want to climb the ranked ladder — but first: do you already have an opponent or do you want to search for one?",
+
+  "CHALLENGE_ASK_TITLE": "🎯 Send your opponent",
+  "CHALLENGE_ASK_DESC": "Send a message mentioning your opponent (ex: @player).\n\n📌 If you mention multiple users, only the **first @** will be used.\n⏳ You have **60 seconds**.",
+
+  "CHALLENGE_MODAL_INVALID": "⚠️ Please provide a valid opponent (@ mention or ID).",
+  "CHALLENGE_SELF": "⚠️ You can't challenge yourself.",
+  "CHALLENGE_OPP_NOT_FOUND": "⚠️ I couldn't find this opponent in the server.",
+
+  "CHALLENGE_CONFIRM_TITLE": "✅ Confirm opponent",
+  "CHALLENGE_CONFIRM_DESC": "Do you confirm you want to start a match against {opponent}?",
+  "CHALLENGE_EXPIRED": "⚠️ Your confirmation expired. Use **/desafiar** again.",
+  "CHALLENGE_OPP_LOCKED": "⚠️ This opponent already has an active lock/match.",
+
+  "CHALLENGE_INVITE_SENT": "📩 Invite sent to {opponent}. The match will only start when they **accept**.",
+  "CHALLENGE_INVITE_TITLE": "⚔️ Match Invite",
+  "CHALLENGE_INVITE_DESC": "{challenger} wants to start a match with you.\n\n✅ Accept to start.\n❌ Decline to cancel.",
+  "CHALLENGE_INVITE_PLAYERS": "Players",
+  "CHALLENGE_INVITE_EXPIRES": "Expires",
+  "CHALLENGE_INVITE_EXPIRED": "⏳ Invite expired.",
+  "CHALLENGE_INVITE_INVALID": "⚠️ This invite doesn’t exist (or was cleaned).",
+  "CHALLENGE_INVITE_ALREADY_HANDLED": "⚠️ This invite has already been handled.",
+  "CHALLENGE_INVITE_TOO_LATE": "⏳ Too late. This invite expired.",
+  "CHALLENGE_INVITE_DECLINED_OK": "❌ Invite declined.",
+
+  "CHALLENGE_CREATED": "✅ Match created and now active. Token: **{token}**.",
+
+  "MATCH_ACTIVE_TITLE": "⚔️ Match active",
+  "MATCH_ACTIVE_DESC": "The match has been successfully started.",
+  "MATCH_ACTIVE_PLAYERS": "Players",
+  "MATCH_ACTIVE_TOKEN": "Token",
+  "MATCH_ACTIVE_TIME": "Time",
+  "MATCH_ACTIVE_TIME_VALUE": "⏳ 30 minutes to register the result."
 }

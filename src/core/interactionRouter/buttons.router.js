@@ -224,6 +224,50 @@ module.exports = async (interaction) => {
   }
 
   // ========================================================
+  // /desafiar (v2.0) + handshake PENDING_ACCEPT
+  // ========================================================
+  if (
+    customId === "challenge_have_opponent" ||
+    customId === "challenge_search_opponent" ||
+    customId === "challenge_confirm" ||
+    customId === "challenge_abort" ||
+    customId.startsWith("challenge_accept_") ||
+    customId.startsWith("challenge_decline_")
+  ) {
+    try {
+      const {
+        handleChallengeHaveOpponent,
+        handleChallengeSearchOpponent,
+        handleChallengeConfirm,
+        handleChallengeAbort,
+        handleChallengeAccept,
+        handleChallengeDecline,
+      } = require("../../modules/competitive/matches/match.ui");
+
+      if (customId === "challenge_have_opponent") return handleChallengeHaveOpponent(interaction);
+      if (customId === "challenge_search_opponent") return handleChallengeSearchOpponent(interaction);
+      if (customId === "challenge_confirm") return handleChallengeConfirm(interaction);
+      if (customId === "challenge_abort") return handleChallengeAbort(interaction);
+
+      if (customId.startsWith("challenge_accept_")) {
+        const inviteId = Number(customId.split("_").pop());
+        return handleChallengeAccept(interaction, inviteId);
+      }
+
+      if (customId.startsWith("challenge_decline_")) {
+        const inviteId = Number(customId.split("_").pop());
+        return handleChallengeDecline(interaction, inviteId);
+      }
+    } catch (err) {
+      logger.error("Erro nos botões /desafiar", err);
+      return safeReply(interaction, {
+        ephemeral: true,
+        content: t(lang, "COMMON_ERROR_GENERIC"),
+      });
+    }
+  }
+
+  // ========================================================
   // LANGUAGE PANEL BUTTONS (v1.2)
   // ========================================================
   if (customId === "lang_set_ptbr" || customId === "lang_set_enus") {
@@ -234,6 +278,7 @@ module.exports = async (interaction) => {
         canChangeLanguage,
         getTimeLeftToChangeLanguage,
         markLanguageChange,
+        setUserLanguageDb, // ✅ novo
       } = require("../../modules/global/language/language.service");
 
       if (!isPresident(userId)) {
@@ -247,7 +292,15 @@ module.exports = async (interaction) => {
         }
       }
 
+      // runtime
       setUserLang(userId, chosen);
+
+      // ✅ persistente no SQLite (users.language)
+      try {
+        setUserLanguageDb(userId, chosen);
+      } catch (e) {
+        logger.error("Erro registrando setUserLanguageDb no SQLite.", e);
+      }
 
       try {
         markLanguageChange(userId);

@@ -7,7 +7,7 @@
 
 require("dotenv").config();
 
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, Partials } = require("discord.js");
 
 const logger = require("./core/logger");
 const botConfig = require("./config/bot");
@@ -21,7 +21,7 @@ const interactionCreateEvent = require("./events/interactionCreate");
 // ========================================================
 // Versão do bot (Word)
 // ========================================================
-const JARVIS_VERSION = "1.4";
+const JARVIS_VERSION = "2.0";
 
 // ========================================================
 // Captura de erros globais (evita "clean exit" silencioso)
@@ -62,10 +62,23 @@ try {
 
 // ========================================================
 // Discord Client
+//
+// ⚠️ v2.0:
+// /desafiar precisa ler messageCreate para capturar @ do adversário.
 // ========================================================
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [
+    GatewayIntentBits.Guilds,
+
+    // ✅ necessário para message collectors (/desafiar)
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+
+    // ✅ útil para roles/painéis
+    GatewayIntentBits.GuildMembers,
+  ],
+  partials: [Partials.Channel],
 });
 
 // ========================================================
@@ -78,7 +91,6 @@ client.commands = loadCommands();
 // Eventos
 // ========================================================
 
-// ⚠️ v14 ok, mas v15 muda para clientReady
 client.once("ready", () => readyEvent(client));
 client.on("interactionCreate", (interaction) => interactionCreateEvent(interaction));
 

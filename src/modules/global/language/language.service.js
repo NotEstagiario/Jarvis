@@ -3,7 +3,7 @@
 // ========================================================
 // Language Service (GLOBAL)
 // - Cooldown 24h por usuário
-// - Persistente em SQLite
+// - Persistente em SQLite (users.language)
 //
 // ⚠️ REGRA IMPORTANTE:
 // NUNCA executar SQL no topo do arquivo (no require),
@@ -18,7 +18,6 @@ const COOLDOWN_MS = 1000 * 60 * 60 * 24; // 24h
 function ensureLanguageCooldownTable() {
   const db = getDb();
 
-  // cria tabela se não existir
   db.prepare(`
     CREATE TABLE IF NOT EXISTS language_cooldowns (
       userId TEXT PRIMARY KEY,
@@ -41,16 +40,50 @@ function ensurePanelsTable() {
 }
 
 // ========================================================
+// Users table helpers (users.language)
+// ========================================================
+function ensureUsersRow(userId) {
+  const db = getDb();
+
+  const now = Date.now();
+
+  db.prepare(`
+    INSERT INTO users (userId, language, languageUpdatedAt, style, createdAt, updatedAt)
+    VALUES (?, 'pt-BR', ?, NULL, ?, ?)
+    ON CONFLICT(userId) DO NOTHING
+  `).run(userId, now, now, now);
+}
+
+function setUserLanguageDb(userId, language) {
+  const db = getDb();
+  ensureUsersRow(userId);
+
+  const now = Date.now();
+
+  db.prepare(`
+    UPDATE users
+    SET language = ?, languageUpdatedAt = ?, updatedAt = ?
+    WHERE userId = ?
+  `).run(language, now, now, userId);
+
+  return { ok: true };
+}
+
+function getUserLanguageDb(userId) {
+  const db = getDb();
+
+  const row = db.prepare(`SELECT language FROM users WHERE userId = ?`).get(userId);
+  return row?.language || "pt-BR";
+}
+
+// ========================================================
 // Cooldown
 // ========================================================
 function canChangeLanguage(userId) {
   const db = getDb();
   ensureLanguageCooldownTable();
 
-  const row = db
-    .prepare(`SELECT lastChangeAt FROM language_cooldowns WHERE userId = ?`)
-    .get(userId);
-
+  const row = db.prepare(`SELECT lastChangeAt FROM language_cooldowns WHERE userId = ?`).get(userId);
   if (!row) return true;
 
   const diff = Date.now() - Number(row.lastChangeAt);
@@ -61,10 +94,7 @@ function getTimeLeftToChangeLanguage(userId) {
   const db = getDb();
   ensureLanguageCooldownTable();
 
-  const row = db
-    .prepare(`SELECT lastChangeAt FROM language_cooldowns WHERE userId = ?`)
-    .get(userId);
-
+  const row = db.prepare(`SELECT lastChangeAt FROM language_cooldowns WHERE userId = ?`).get(userId);
   if (!row) return "0s";
 
   const diff = Date.now() - Number(row.lastChangeAt);
@@ -112,16 +142,19 @@ function getPanelMessage(panelKey) {
   const db = getDb();
   ensurePanelsTable();
 
-  return db
-    .prepare(`SELECT key, channelId, messageId FROM fixed_panels WHERE key = ?`)
-    .get(panelKey);
+  return db.prepare(`SELECT key, channelId, messageId FROM fixed_panels WHERE key = ?`).get(panelKey);
 }
 
 module.exports = {
   COOLDOWN_MS,
+
   canChangeLanguage,
   getTimeLeftToChangeLanguage,
   markLanguageChange,
+
+  // ✅ persistência real
+  setUserLanguageDb,
+  getUserLanguageDb,
 
   savePanelMessage,
   getPanelMessage,
