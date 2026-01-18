@@ -121,7 +121,11 @@ async function openBadgesMenu(interaction) {
       new StringSelectMenuOptionBuilder()
         .setLabel(lang === "en-US" ? "No badges yet" : "Nenhuma insígnia ainda")
         .setValue("soon_badges")
-        .setDescription(lang === "en-US" ? "This selector will be enabled soon." : "Esse seletor será habilitado em breve.")
+        .setDescription(
+          lang === "en-US"
+            ? "This selector will be enabled soon."
+            : "Esse seletor será habilitado em breve."
+        )
     );
   } else {
     for (const badge of badges.slice(0, 25)) {
@@ -161,7 +165,7 @@ async function openBadgesMenu(interaction) {
 // ========================================================
 // handleBadgesSelect (selectMenus.router)
 // - router já fez deferUpdate()
-// - aqui aplica badges + atualiza painel + manda confirmação ephemeral
+// - aqui aplica badges + mantém UI + manda confirmação ephemeral
 // ========================================================
 async function handleBadgesSelect(interaction) {
   const staffId = interaction.user.id;
@@ -185,7 +189,7 @@ async function handleBadgesSelect(interaction) {
 
   updateStat(st.targetId, "badgesJson", JSON.stringify(list));
 
-  // atualiza painel
+  // mantém painel
   await safeEditReply(interaction, {
     embeds: interaction.message.embeds,
     components: interaction.message.components,

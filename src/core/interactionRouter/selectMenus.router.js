@@ -44,10 +44,8 @@ async function safeEditReply(interaction, payload) {
     return await interaction.editReply(payload);
   } catch (err) {
     const code = err?.code;
-    if (code === 10062) {
-      logger.warn("SelectMenu: tentativa de editReply após expirar (10062).");
-      return null;
-    }
+
+    if (code === 10062 || code === 40060) return null;
 
     try {
       return await interaction.followUp({ ...payload, ephemeral: true });

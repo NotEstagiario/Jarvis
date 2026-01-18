@@ -174,7 +174,7 @@ async function handleRankSelect(interaction) {
     rankId: picked,
   });
 
-  // ✅ LOG DA ALTERAÇÃO (isso é o que você quer ver no log)
+  // ✅ LOG DA ALTERAÇÃO
   try {
     await logStaffProfileEdit(interaction, {
       staffId,
@@ -187,7 +187,7 @@ async function handleRankSelect(interaction) {
     // não trava o fluxo
   }
 
-  // ✅ atualiza embed do painel (wizard)
+  // ✅ atualiza embed do painel
   const panelEmbed = new EmbedBuilder()
     .setColor(COLOR)
     .setDescription(
@@ -205,7 +205,7 @@ async function handleRankSelect(interaction) {
     components: interaction.message.components,
   });
 
-  // ✅ mensagem que você está exigindo que apareça (ephemeral)
+  // ✅ confirmação ephemeral
   const done = new EmbedBuilder()
     .setColor(COLOR)
     .setDescription(
