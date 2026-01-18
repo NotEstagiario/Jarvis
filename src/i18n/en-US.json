@@ -125,5 +125,89 @@
     "This isn’t a bug. It’s a paywall with personality. <:az_premium:1462033257557266497>",
     "You tried to access Premium without Premium… bold. Now go Premium and try again. 😈",
     "Wanna unlock this skill? Premium or Mega Booster. Otherwise… just cope. 💅"
-  ]
+  ],
+
+  "EDITOR_ONLY_STAFF": "⛔ Only **Staff** can use this command.",
+  "EDITOR_MAIN_DESC": "# <:bensa_this_is_fire:1453211690849145014> Stats Editor\n\nSelect one of these buttons to start editing:",
+  "EDITOR_PICK_STAT_DESC": "# 🧩 {section}\n\nSelect a stat to edit:",
+  "EDITOR_EDIT_DESC": "# ✍️ Editor\n\n📌 Stat: {stat}\n📊 Current value: {value}\n\nNow select an action:",
+  "EDITOR_PENDING_DESC": "# ✅ Value prepared\n\n📌 Stat: {stat}\n📊 New value: {value}\n\nNow click **Confirm edit** to log the change.",
+  "EDITOR_DONE_DESC": "# ✅ Edit confirmed\n\n📌 Stat: {stat}\n📊 New value: {value}\n\n🧾 The change has been logged.",
+
+  "EDITOR_SECTION_PLAYER": "Player",
+  "EDITOR_SECTION_BADGES": "Badges",
+  "EDITOR_SECTION_MATCHES": "Matches",
+  "EDITOR_SECTION_GOALS": "Goals",
+  "EDITOR_SECTION_RIVALRIES": "Rivalries",
+
+  "EDITOR_STAT_WINS": "Wins",
+  "EDITOR_STAT_LOSSES": "Losses",
+  "EDITOR_STAT_DRAWS": "Draws",
+  "EDITOR_STAT_STREAK_CURRENT": "Current streak",
+  "EDITOR_STAT_STREAK_BEST": "Best streak",
+
+  "EDITOR_BTN_BACK": "Back",
+  "EDITOR_BTN_BACK_MENU": "Back to Menu",
+  "EDITOR_BTN_CONFIRM": "Confirm edit",
+  "EDITOR_BTN_SET_VALUE": "Set value",
+  "EDITOR_BTN_ZERO": "Zero",
+
+  "EDITOR_MODAL_SET_TITLE": "Set value",
+  "EDITOR_MODAL_SET_LABEL": "New value (number)",
+  "EDITOR_MODAL_JUSTIFY_TITLE": "Justification",
+  "EDITOR_MODAL_JUSTIFY_LABEL": "Why are you editing this stat?",
+
+  "EDITOR_INVALID_NUMBER": "⚠️ Invalid number.",
+  "EDITOR_INVALID_USER": "⚠️ Invalid user. Use @mention or ID.",
+  "EDITOR_USER_NOT_FOUND": "⚠️ User not found in guild.",
+  "EDITOR_NO_VALUE": "⚠️ No value selected.",
+
+  "EDITOR_BADGES_SELECT_DESC": "Select the badges you want to set for this player.",
+  "EDITOR_BADGES_SELECT_PLACEHOLDER": "Choose badges...",
+  "EDITOR_BADGES_SELECT_SOON": "Selector soon...",
+
+  "EDITOR_RIVALRIES_DESC": "Choose what you want to edit:",
+  "EDITOR_RIVALRIES_PICK_NEMESIS": "Pick Nemesis",
+  "EDITOR_RIVALRIES_PICK_FAVORITE": "Pick Favorite",
+  "EDITOR_RIVALRIES_PICK_OPPONENT": "Pick Opponent",
+  "EDITOR_RIVALRIES_PICK_LABEL": "User ID or @mention",
+
+  "EDITOR_RIVALRIES_NEMESIS_TITLE": "Nemesis — losses",
+  "EDITOR_RIVALRIES_NEMESIS_LABEL": "How many times lost?",
+
+  "EDITOR_RIVALRIES_FAVORITE_TITLE": "Favorite — wins",
+  "EDITOR_RIVALRIES_FAVORITE_LABEL": "How many wins vs them?",
+
+  "EDITOR_RIVALRIES_BESTWIN_FOR_TITLE": "Best Win — goals for",
+  "EDITOR_RIVALRIES_BESTWIN_FOR_LABEL": "Goals scored by player",
+
+  "EDITOR_RIVALRIES_BESTWIN_AGAINST_TITLE": "Best Win — goals against",
+  "EDITOR_RIVALRIES_BESTWIN_AGAINST_LABEL": "Goals scored by opponent",
+
+  "EDITOR_RIVAL_NEMESIS_USERID": "Nemesis User ID",
+  "EDITOR_RIVAL_NEMESIS_COUNT": "Losses vs Nemesis",
+  "EDITOR_RIVAL_FAVORITE_USERID": "Favorite User ID",
+  "EDITOR_RIVAL_FAVORITE_COUNT": "Wins vs Favorite",
+  "EDITOR_RIVAL_BESTWIN_USERID": "Opponent ID (Best Win)",
+  "EDITOR_RIVAL_BESTWIN_FOR": "Goals For (Best Win)",
+  "EDITOR_RIVAL_BESTWIN_AGAINST": "Goals Against (Best Win)",
+
+  "EDITOR_STAT_WO_WINS": "WO Wins",
+  "EDITOR_STAT_WARNINGS": "Warnings",
+  "EDITOR_STAT_PUNISHED_UNTIL": "Punished until",
+
+  "EDITOR_GOALS_BEST_SCORED": "Most goals scored in a match",
+  "EDITOR_GOALS_BEST_CONCEDED": "Most goals conceded in a match",
+
+  "EDITOR_BADGE_FIRST_DIAMOND": "First Diamond",
+  "EDITOR_BADGE_FIRST_CHAMPION": "First Champion",
+  "EDITOR_BADGE_LEGEND": "Legend",
+  "EDITOR_BADGE_TOTAL": "Badges total",
+
+  "EDITOR_RANK_TITLE": "Season Rank",
+  "EDITOR_RANK_DESC": "Select the correct rank for this player.\n\n📌 This will:\n- set the real rank (`seasonRank`)\n- adjust **minimum XP** for that rank\n- apply the rank role automatically",
+  "EDITOR_RANK_CURRENT": "Current rank",
+  "EDITOR_RANK_SELECT_PLACEHOLDER": "Choose rank...",
+  "EDITOR_RANK_DONE": "Rank updated successfully.",
+  "EDITOR_RANK_DONE_HINT": "✅ The rank role has been synced automatically."
 }

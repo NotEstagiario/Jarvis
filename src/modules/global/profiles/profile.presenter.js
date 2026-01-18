@@ -1,32 +1,5 @@
 // src/modules/global/profiles/profile.presenter.js
 
-// ========================================================
-// Profile Presenter (GLOBAL)
-// v1.4
-//
-// Objetivo:
-// - Centralizar UI de /perfil e /analisarperfil
-// - Garantir consistência PT/EN
-// - Evitar divergência futura
-//
-// buildProfileUI({
-//   lang,
-//   mode: "SELF" | "STAFF",
-//   viewerUserId,
-//   targetUser,      // discord.js User
-//   targetMember,    // discord.js GuildMember (opcional)
-//   profileData,     // vindo do getCompetitiveProfile()
-// })
-//
-// Retorna:
-// {
-//   pages: EmbedBuilder[],
-//   tabsRows: ActionRowBuilder[],
-//   navRow: (page) => ActionRowBuilder
-// }
-//
-// ========================================================
-
 const {
   EmbedBuilder,
   ActionRowBuilder,
@@ -36,11 +9,15 @@ const {
 
 const { t } = require("../../../i18n");
 
-const EMOJI_COMPETITIVE = "<:bensa_evil:1453193952277827680>";
+const {
+  getRankByXp,
+  getRankById,
+  getRankLabel,
+  getRankEmoji,
+  getRankColor,
+} = require("../ranks/ranks.catalog");
 
-function unrankedText(lang) {
-  return lang === "en-US" ? "Unranked" : "Sem Rank";
-}
+const EMOJI_COMPETITIVE = "<:bensa_evil:1453193952277827680>";
 
 function naText(lang) {
   return "N/A";
@@ -59,13 +36,9 @@ function formatPunish(ts, lang) {
   return `<t:${Math.floor(n / 1000)}:R>`;
 }
 
-// ========================================================
-// STAFF extras (roles)
-// ========================================================
 function getRolesCount(targetMember) {
   try {
     if (!targetMember?.roles?.cache) return 0;
-    // remove @everyone
     return Math.max(0, targetMember.roles.cache.size - 1);
   } catch {
     return 0;
@@ -76,19 +49,13 @@ function getHighestRoleText(targetMember, guildId, lang) {
   try {
     if (!targetMember?.roles?.highest) return naText(lang);
     const highest = targetMember.roles.highest;
-
-    // se for @everyone, retorna N/A
     if (!highest?.id || highest.id === guildId) return naText(lang);
-
     return `${highest}`;
   } catch {
     return naText(lang);
   }
 }
 
-// ========================================================
-// Buttons builders
-// ========================================================
 function buildTabsRow1(lang) {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -160,8 +127,88 @@ function buildNavRow(lang, pagesLength, page) {
 }
 
 // ========================================================
-// buildProfileUI
+// ✅ Badges Helpers
 // ========================================================
+
+function normalizeBadgesArray(raw) {
+  if (!raw) return [];
+
+  // se vier array diretamente
+  if (Array.isArray(raw)) return raw.map((x) => String(x));
+
+  // se vier JSON string
+  if (typeof raw === "string") {
+    const s = raw.trim();
+
+    // suporte: badges = "firstDiamond,firstChampion" (fallback antigo)
+    if (!s.startsWith("[") && !s.startsWith("{") && s.includes(",")) {
+      return s
+        .split(",")
+        .map((x) => String(x).trim())
+        .filter(Boolean);
+    }
+
+    try {
+      const parsed = JSON.parse(s);
+      if (Array.isArray(parsed)) return parsed.map((x) => String(x));
+    } catch {
+      // ignore
+    }
+  }
+
+  return [];
+}
+
+function getBadgeCatalog(lang) {
+  return [
+    { id: "firstDiamond", emoji: "💎", label: t(lang, "EDITOR_BADGE_FIRST_DIAMOND") },
+    { id: "firstChampion", emoji: "🏆", label: t(lang, "EDITOR_BADGE_FIRST_CHAMPION") },
+    { id: "legend", emoji: "👑", label: t(lang, "EDITOR_BADGE_LEGEND") },
+  ];
+}
+
+function renderBadges(lang, profileData) {
+  // ✅ agora usa badgesJson (novo) com fallback pro legado
+  const raw = profileData?.badgesJson ?? profileData?.badges ?? null;
+
+  const owned = new Set(normalizeBadgesArray(raw));
+  const catalog = getBadgeCatalog(lang);
+
+  const items = catalog.filter((b) => owned.has(b.id));
+  if (!items.length) return `${t(lang, "PROFILE_VALUE_NONE_FEM")}.`;
+
+  return items.map((b) => `${b.emoji} **${b.label}**`).join("\n");
+}
+
+// ========================================================
+// ✅ Rivalries Helpers
+// ========================================================
+
+function renderMentionOrNA(userId, lang) {
+  const id = String(userId || "").trim();
+  if (!id) return naText(lang);
+  return `<@${id}>`;
+}
+
+function renderBestWinTextFromNewSchema(profileData, lang) {
+  const opponentId = String(profileData?.bestWinOpponentId || "").trim();
+  const gf = Number(profileData?.bestWinGoalsFor ?? 0);
+  const ga = Number(profileData?.bestWinGoalsAgainst ?? 0);
+
+  const hasOpponent = !!opponentId;
+  const hasScore = Number.isFinite(gf) && Number.isFinite(ga) && (gf > 0 || ga > 0);
+
+  if (!hasOpponent && !hasScore) return naText(lang);
+
+  const opp = hasOpponent ? `<@${opponentId}>` : naText(lang);
+  const about = lang === "en-US" ? "over" : "sobre";
+
+  // padrão Word: "6 x 1 sobre @user"
+  // se não tiver opp, mostra só score
+  if (hasOpponent) return `**${gf} x ${ga}** ${about} ${opp}`;
+  return `**${gf} x ${ga}**`;
+}
+
 function buildProfileUI({
   lang,
   mode,
@@ -181,33 +228,42 @@ function buildProfileUI({
   };
 
   // ========================================================
+  // ✅ Rank real + color
+  // ========================================================
+  const xp = Number(profileData?.xp ?? 0);
+  const seasonRankId = String(profileData?.seasonRank || "").trim().toLowerCase();
+
+  const computed = getRankByXp(xp);
+  const rank = seasonRankId ? getRankById(seasonRankId) : computed;
+
+  const rankEmoji = getRankEmoji(rank.id);
+  const rankLabel = getRankLabel(lang, rank.id);
+  const rankColor = getRankColor(rank.id);
+
+  // ========================================================
   // Page 0 - Player
   // ========================================================
   pages.push(
     new EmbedBuilder()
       .setAuthor(author)
-      .setColor(0x2b2d31)
-      .setDescription(
-        `# ${EMOJI_COMPETITIVE} ${t(lang, "PROFILE_TITLE_PLAYER")}: ${targetUser}`
-      )
+      .setColor(rankColor)
+      .setDescription(`# ${EMOJI_COMPETITIVE} ${t(lang, "PROFILE_TITLE_PLAYER")}: ${targetUser}`)
       .addFields(
         {
           name: "",
           inline: true,
-          value: `🏅 **${t(lang, "PROFILE_STAT_SEASON_RANK")}**: ${unrankedText(lang)}`,
+          value: `${rankEmoji} **${t(lang, "PROFILE_STAT_SEASON_RANK")}**: **${rankLabel}**`,
         },
         {
           name: "",
           inline: true,
-          value: `✨ **${t(lang, "PROFILE_STAT_XP")}**: ${Number(profileData.xp ?? 0)}`,
+          value: `✨ **${t(lang, "PROFILE_STAT_XP")}**: ${xp}`,
         },
         {
           name: "",
           inline: true,
-          value: `🏆 **${t(lang, "PROFILE_STAT_CHAMPIONSHIPS")}**: ${t(
-            lang,
-            "PROFILE_VALUE_NONE_MASC"
-          )}`,
+          // ✅ agora puxa do schema de verdade
+          value: `🏆 **${t(lang, "PROFILE_STAT_CHAMPIONSHIPS")}**: ${Number(profileData?.championships ?? 0)}`,
         }
       )
   );
@@ -223,7 +279,7 @@ function buildProfileUI({
       .addFields({
         name: "",
         inline: false,
-        value: `${t(lang, "PROFILE_VALUE_NONE_FEM")}.`,
+        value: renderBadges(lang, profileData),
       })
   );
 
@@ -255,16 +311,12 @@ function buildProfileUI({
         {
           name: "",
           inline: false,
-          value: `🔥 **${t(lang, "PROFILE_STAT_STREAK_CURRENT")}**: ${Number(
-            profileData.currentStreak ?? 0
-          )}`,
+          value: `🔥 **${t(lang, "PROFILE_STAT_STREAK_CURRENT")}**: ${Number(profileData.currentStreak ?? 0)}`,
         },
         {
           name: "",
           inline: false,
-          value: `🏅 **${t(lang, "PROFILE_STAT_STREAK_BEST")}**: ${Number(
-            profileData.bestStreak ?? 0
-          )}`,
+          value: `🏅 **${t(lang, "PROFILE_STAT_STREAK_BEST")}**: ${Number(profileData.bestStreak ?? 0)}`,
         }
       )
   );
@@ -301,28 +353,43 @@ function buildProfileUI({
   );
 
   // ========================================================
-  // Page 4 - Rivalries
+  // Page 4 - Rivalries ✅ agora 100% real + embed bonitona
   // ========================================================
+  const nemesisText = renderMentionOrNA(profileData?.nemesisId, lang);
+  const favoriteText = renderMentionOrNA(profileData?.favoriteId, lang);
+
+  // ✅ novo sistema (opponentId + score)
+  const bestWinText = renderBestWinTextFromNewSchema(profileData, lang);
+
+  const nemesisLosses = Number(profileData?.nemesisLosses ?? 0);
+  const favoriteWins = Number(profileData?.favoriteWins ?? 0);
+
   pages.push(
     new EmbedBuilder()
       .setAuthor(author)
       .setColor(0x2b2d31)
-      .setDescription(`# 👫 ${t(lang, "PROFILE_TITLE_RIVALRIES")}`)
+      .setDescription(`# 👥 ${t(lang, "PROFILE_TITLE_RIVALRIES")}`)
       .addFields(
         {
           name: "",
-          inline: true,
-          value: `💀 **${t(lang, "PROFILE_STAT_NEMESIS")}**: N/A`,
+          inline: false,
+          value: [
+            `💀 **${t(lang, "PROFILE_STAT_NEMESIS")}**: ${nemesisText}`,
+            `└ 📉 ${lang === "en-US" ? "Losses" : "Derrotas"}: **${nemesisLosses}**`,
+          ].join("\n"),
         },
         {
           name: "",
-          inline: true,
-          value: `☠️ **${t(lang, "PROFILE_STAT_FAVORITE")}**: N/A`,
+          inline: false,
+          value: [
+            `☠️ **${t(lang, "PROFILE_STAT_FAVORITE")}**: ${favoriteText}`,
+            `└ 📈 ${lang === "en-US" ? "Wins" : "Vitórias"}: **${favoriteWins}**`,
+          ].join("\n"),
         },
         {
           name: "",
-          inline: true,
-          value: `⚽️ **${t(lang, "PROFILE_STAT_BESTWIN")}**: N/A`,
+          inline: false,
+          value: `⚽️ **${t(lang, "PROFILE_STAT_BESTWIN")}**: ${bestWinText}`,
         }
       )
   );
@@ -338,9 +405,7 @@ function buildProfileUI({
       new EmbedBuilder()
         .setAuthor(author)
         .setColor(0xb71c1c)
-        .setDescription(
-          lang === "en-US" ? `# 🛡️ Staff — Private data` : `# 🛡️ Staff — Dados privados`
-        )
+        .setDescription(lang === "en-US" ? `# 🛡️ Staff — Private data` : `# 🛡️ Staff — Dados privados`)
         .addFields(
           {
             name: lang === "en-US" ? "👤 UserId" : "👤 UserId",

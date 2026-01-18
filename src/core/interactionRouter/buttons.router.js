@@ -15,8 +15,9 @@
 // ✅ Gameplay Style Panel Buttons (v1.3)
 //
 // ⚠️ IMPORTANTE:
-// - Botões do /perfil (profile_*) são tratados DENTRO do comando
-//   via collector. Aqui nós DEVEMOS IGNORAR.
+// - Botões do /perfil (profile_*) são tratados DENTRO do comando via collector
+// - Botões do /editarperfil (editprofile_*) são tratados DENTRO do comando via collector
+//   EXCETO: botões auxiliares do flow de Rivalries Continue (ephemeral)
 // ========================================================
 
 const logger = require("../logger");
@@ -24,6 +25,8 @@ const azyron = require("../../config/azyronIds");
 
 const { t } = require("../../i18n");
 const { getUserLang, setUserLang } = require("../../utils/lang");
+
+const { getDb } = require("../../database/sqlite"); // ✅ necessário pro fix championships
 
 const {
   setGameplayStyleOnce,
@@ -46,8 +49,6 @@ try {
 
 // ========================================================
 // DEBUG anti-spam (Word)
-// - Em produção NÃO pode poluir terminal com clique de botão
-// - Para ativar logs: DEBUG_BUTTONS=true no .env
 // ========================================================
 const DEBUG_BUTTONS = String(process.env.DEBUG_BUTTONS || "").toLowerCase() === "true";
 
@@ -244,7 +245,44 @@ module.exports = async (interaction) => {
   // ✅ /perfil buttons (LOCAL collector)
   if (customId.startsWith("profile_")) return;
 
-  // ✅ Anti-spam terminal: loga só se DEBUG_BUTTONS=true
+  // ========================================================
+  // ✅ /editarperfil buttons:
+  // - por padrão são do collector local (ignorar aqui)
+  // - EXCEÇÃO: Rivalries "Continue" buttons (ephemeral flow)
+  // ========================================================
+  if (customId.startsWith("editprofile_")) {
+    const { BTN } = require("../../modules/staff/profileEditor/profileEditor.constants");
+
+    const isRivalryContinue =
+      customId === BTN.RIVALRIES_CONTINUE_NEMESIS ||
+      customId === BTN.RIVALRIES_CONTINUE_FAVORITE ||
+      customId === BTN.RIVALRIES_CONTINUE_BESTWIN_FOR ||
+      customId === BTN.RIVALRIES_CONTINUE_BESTWIN_AGAINST;
+
+    if (!isRivalryContinue) return;
+
+    try {
+      const {
+        openNemesisValueModal,
+        openFavoriteValueModal,
+        openBestWinGoalsForModal,
+        openBestWinGoalsAgainstModal,
+      } = require("../../modules/staff/profileEditor/profileEditor.rivalries");
+
+      if (customId === BTN.RIVALRIES_CONTINUE_NEMESIS) return openNemesisValueModal(interaction);
+      if (customId === BTN.RIVALRIES_CONTINUE_FAVORITE) return openFavoriteValueModal(interaction);
+      if (customId === BTN.RIVALRIES_CONTINUE_BESTWIN_FOR) return openBestWinGoalsForModal(interaction);
+      if (customId === BTN.RIVALRIES_CONTINUE_BESTWIN_AGAINST) return openBestWinGoalsAgainstModal(interaction);
+    } catch (err) {
+      logger.error("Erro nos Rivalries Continue buttons", err);
+      return safeReply(interaction, {
+        ephemeral: true,
+        content: t(lang, "COMMON_ERROR_GENERIC"),
+      });
+    }
+  }
+
+  // ✅ Anti-spam terminal
   if (DEBUG_BUTTONS) {
     logger.info(`[BTN] ${customId} por ${interaction.user.tag} (${userId})`);
   }
@@ -337,7 +375,6 @@ module.exports = async (interaction) => {
 
       // Clicou Premium
       if (customId === "resetpremium_premium") {
-        // sem premium/mega -> trash talk
         if (!hasAny) {
           const poolKey = lang === "en-US" ? "premiumReset.trashTalk.en" : "premiumReset.trashTalk.pt";
           const list = t(lang, poolKey);
@@ -346,7 +383,6 @@ module.exports = async (interaction) => {
           return safeReply(interaction, { ephemeral: true, content: `❌ ${msg}` });
         }
 
-        // com premium/mega -> abre confirmação bonitona
         const skin = getPremiumSkin(member);
 
         const embed = new EmbedBuilder()
@@ -372,13 +408,9 @@ module.exports = async (interaction) => {
         return interaction.update({ embeds: [embed], components: [row] });
       }
 
-      // "Sim" -> reset
       if (customId === "resetpremium_confirm_yes") {
         const skin = getPremiumSkin(member);
 
-        // ========================================================
-        // ✅ BYPASS DO PRESIDENTE (TESTES)
-        // ========================================================
         if (!isPresident(userId)) {
           const cd = canUsePremiumReset(userId);
           if (!cd.ok) {
@@ -398,8 +430,29 @@ module.exports = async (interaction) => {
           }
         }
 
-        // reset stats + marca uso
+        // ✅ reset base (public stats)
         resetCompetitivePublicStats(userId);
+
+        // ========================================================
+        // ✅ FIX DEFINITIVO:
+        // /resetpremium agora também reseta Championships (campeonatos)
+        // porque o resetCompetitivePublicStats não estava resetando esse campo.
+        // ========================================================
+        try {
+          const db = getDb();
+
+          db.prepare(
+            `
+            UPDATE competitive_profile
+            SET championships = 0
+            WHERE userId = ?
+            `
+          ).run(userId);
+        } catch (e) {
+          logger.error("Falha ao resetar championships no /resetpremium.", e);
+          // não quebra o comando, pois o reset do resto já foi feito
+        }
+
         const usedAt = markPremiumResetUsed(userId);
 
         const nextAt = usedAt + COOLDOWN_MS;
@@ -419,6 +472,16 @@ module.exports = async (interaction) => {
       }
     } catch (err) {
       logger.error("Erro no Premium Reset", err);
+
+      // ✅ Anti 40060 (Interaction already acknowledged)
+      // se já foi acknowledged (update/defer), usa followUp
+      if (interaction.replied || interaction.deferred) {
+        return safeReply(interaction, {
+          ephemeral: true,
+          content: t(lang, "COMMON_ERROR_GENERIC"),
+        });
+      }
+
       return safeReply(interaction, {
         ephemeral: true,
         content: t(lang, "COMMON_ERROR_GENERIC"),
@@ -492,7 +555,6 @@ module.exports = async (interaction) => {
           ? GAMEPLAY_STYLES.CASUAL
           : GAMEPLAY_STYLES.COMPETITIVE;
 
-      // Pega member + roles atuais
       const member = await interaction.guild.members.fetch(userId);
 
       const roleCasual = azyron.roles.casual;
@@ -502,17 +564,14 @@ module.exports = async (interaction) => {
       const hasCompetitiveRole = roleCompetitive ? member.roles.cache.has(roleCompetitive) : false;
       const hasAnyGameplayRole = hasCasualRole || hasCompetitiveRole;
 
-      // Se DB diz que tem escolha, mas ele não tem role nenhuma -> libera
       const dbStyle = getGameplayStyle(userId);
       if (dbStyle && !hasAnyGameplayRole) {
         clearGameplayStyle(userId);
       }
 
-      // Seleciona arrays por idioma (EN / PT)
       const choosePool = lang === "en-US" ? chooseMsgsEN : chooseMsgsPT;
       const lockedPool = lang === "en-US" ? lockedMsgsEN : lockedMsgsPT;
 
-      // Presidente = bypass total
       if (isPresident(userId)) {
         const forced = setGameplayStyleForce(userId, chosenStyle);
 
@@ -524,7 +583,6 @@ module.exports = async (interaction) => {
           });
         }
 
-        // aplica cargos
         if (chosenStyle === GAMEPLAY_STYLES.CASUAL) {
           if (roleCompetitive) await member.roles.remove(roleCompetitive).catch(() => {});
           if (roleCasual) await member.roles.add(roleCasual).catch(() => {});
@@ -537,7 +595,6 @@ module.exports = async (interaction) => {
         return safeReply(interaction, { ephemeral: true, content: `✅ ${msg}` });
       }
 
-      // Normal: escolher UMA vez
       const result = setGameplayStyleOnce(userId, chosenStyle);
 
       if (!result.ok && result.reason === "ALREADY_SET") {
@@ -552,7 +609,6 @@ module.exports = async (interaction) => {
         });
       }
 
-      // aplica cargos
       if (chosenStyle === GAMEPLAY_STYLES.CASUAL) {
         if (roleCompetitive) await member.roles.remove(roleCompetitive).catch(() => {});
         if (roleCasual) await member.roles.add(roleCasual).catch(() => {});

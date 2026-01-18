@@ -45,7 +45,52 @@ module.exports = {
     premium: "1459815660933877820",
     megaBooster: "1453129423753838602",
 
-    // STAFF (obrigatório para comandos staff, ex: /analisarperfil)
+    // STAFF
     staff: "1453136651940270296",
+
+    // ADMIN WORD
+    president: "1428646577014177875",
+    vicePresident: "1453144013795491930",
+    council: "1460338237120708881",
+  },
+
+  // ========================================================
+  // ✅ RANK ROLES (Word)
+  // ========================================================
+  ranks: {
+    cobre: {
+      roleId: "1458787560863174729",
+      emoji: "<:comp_cobre:1458792661975564472>",
+      rgb: "992f19",
+    },
+    ferro: {
+      roleId: "1457349081943773296",
+      emoji: "<:comp_ferro:1458792728295903233>",
+      rgb: "5f4f6a",
+    },
+    bronze: {
+      roleId: "1457353820332888108",
+      emoji: "<:comp_bronze:1458792843861688502>",
+      rgb: "ee6038",
+    },
+    prata: {
+      roleId: "1457349239360196854",
+      emoji: "<:comp_prata:1458792923402469447>",
+      rgb: "959ec7",
+    },
+    ouro: {
+      roleId: "1453328539901497395",
+      emoji: "<:comp_ouro:1458793814381691024>",
+      rgb: "ffe1b4",
+    },
+    diamante: {
+      roleId: "1457349311732912189",
+      emoji: "<:comp_diamante:1458794140308476031>",
+      rgb: "9e6bff",
+    },
+    mvp: {
+      roleId: "1453144649324691497",
+      rgb: "d4843d",
+    },
   },
 };

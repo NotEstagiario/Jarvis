@@ -26,6 +26,13 @@ CREATE TABLE IF NOT EXISTS competitive_profile (
   -- rank system
   xp INTEGER NOT NULL DEFAULT 0,
 
+  -- ✅ rank real da season (Word)
+  -- ex: "unranked" | "cobre" | "ferro" | ...
+  seasonRank TEXT,
+
+  -- ✅ campeonatos (Word)
+  championships INTEGER NOT NULL DEFAULT 0,
+
   -- match stats
   wins INTEGER NOT NULL DEFAULT 0,
   losses INTEGER NOT NULL DEFAULT 0,
@@ -39,17 +46,27 @@ CREATE TABLE IF NOT EXISTS competitive_profile (
   goalsScored INTEGER NOT NULL DEFAULT 0,
   goalsConceded INTEGER NOT NULL DEFAULT 0,
 
+  -- ✅ record goals (Word)
+  bestGoalsScoredInMatch INTEGER NOT NULL DEFAULT 0,
+  bestGoalsConcededInMatch INTEGER NOT NULL DEFAULT 0,
+
   -- STAFF / PRIVADO
   woWins INTEGER NOT NULL DEFAULT 0,
   warnings INTEGER NOT NULL DEFAULT 0,
 
-  -- badges/insignias (texto simples como no antigo)
-  badges TEXT,
+  -- badges/insignias
+  badgesJson TEXT,
 
-  -- rivalries
+  -- rivalries (novo sistema completo)
   nemesisId TEXT,
+  nemesisLosses INTEGER NOT NULL DEFAULT 0,
+
   favoriteId TEXT,
-  bestWinText TEXT,
+  favoriteWins INTEGER NOT NULL DEFAULT 0,
+
+  bestWinOpponentId TEXT,
+  bestWinGoalsFor INTEGER NOT NULL DEFAULT 0,
+  bestWinGoalsAgainst INTEGER NOT NULL DEFAULT 0,
 
   -- moderation/system
   punishedUntil INTEGER,
@@ -61,7 +78,7 @@ CREATE TABLE IF NOT EXISTS competitive_profile (
 -- ========================================================
 CREATE TABLE IF NOT EXISTS competitive_locks (
   userId TEXT PRIMARY KEY,
-  lockType TEXT NOT NULL,         -- active | searching | pending_result | pending_review
+  lockType TEXT NOT NULL,
   token TEXT,
   createdAt INTEGER NOT NULL,
   updatedAt INTEGER NOT NULL
@@ -69,14 +86,6 @@ CREATE TABLE IF NOT EXISTS competitive_locks (
 
 -- ========================================================
 -- Competitive Matches (v2.0)
---
--- status:
--- - active (em vigor)
--- - cancelled
--- - finished_ok
--- - finished_void
--- - pending_result (aguardando confirmação adversário)
--- - pending_review (staff review)
 -- ========================================================
 CREATE TABLE IF NOT EXISTS competitive_matches (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -100,9 +109,6 @@ CREATE TABLE IF NOT EXISTS competitive_matches (
   updatedAt INTEGER NOT NULL
 );
 
--- ========================================================
--- Match Events (log interno para auditoria)
--- ========================================================
 CREATE TABLE IF NOT EXISTS competitive_match_events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   token TEXT NOT NULL,
@@ -111,14 +117,6 @@ CREATE TABLE IF NOT EXISTS competitive_match_events (
   createdAt INTEGER NOT NULL
 );
 
--- ========================================================
--- Match Invites (v2.0 handshake)
--- status:
--- - pending
--- - accepted
--- - declined
--- - expired
--- ========================================================
 CREATE TABLE IF NOT EXISTS competitive_match_invites (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
 
@@ -134,10 +132,6 @@ CREATE TABLE IF NOT EXISTS competitive_match_invites (
   updatedAt INTEGER NOT NULL
 );
 
--- ========================================================
--- Premium Reset Cooldown (v2.1)
--- 1 reset por usuário a cada 31 dias
--- ========================================================
 CREATE TABLE IF NOT EXISTS premium_profile_resets (
   userId TEXT PRIMARY KEY,
   lastResetAt INTEGER NOT NULL

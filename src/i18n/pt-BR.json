@@ -125,5 +125,89 @@
     "Isso aqui não é bug. É paywall com personalidade. <:az_premium:1462033257557266497>",
     "Você tentou acessar Premium sem Premium… ousado. Agora vira Premium e tenta de novo. 😈",
     "Quer desbloquear essa skill? Premium ou Mega Booster. Sem isso, só resta chorar. 💅"
-  ]
+  ],
+
+  "EDITOR_ONLY_STAFF": "⛔ Apenas **Staff** pode usar esse comando.",
+  "EDITOR_MAIN_DESC": "# <:bensa_this_is_fire:1453211690849145014> Editor de Estatísticas\n\nSelecione um desses botões para iniciarmos a edição:",
+  "EDITOR_PICK_STAT_DESC": "# 🧩 {section}\n\nSelecione uma estatística para editar:",
+  "EDITOR_EDIT_DESC": "# ✍️ Editor\n\n📌 Estatística: {stat}\n📊 Valor atual: {value}\n\nAgora selecione uma ação:",
+  "EDITOR_PENDING_DESC": "# ✅ Valor preparado\n\n📌 Estatística: {stat}\n📊 Novo valor: {value}\n\nAgora clique em **Confirmar edição** para registrar no sistema.",
+  "EDITOR_DONE_DESC": "# ✅ Edição confirmada\n\n📌 Estatística: {stat}\n📊 Novo valor: {value}\n\n🧾 A alteração foi registrada e enviada ao log.",
+
+  "EDITOR_SECTION_PLAYER": "Jogador",
+  "EDITOR_SECTION_BADGES": "Insígnias",
+  "EDITOR_SECTION_MATCHES": "Partidas",
+  "EDITOR_SECTION_GOALS": "Gols",
+  "EDITOR_SECTION_RIVALRIES": "Rivalidades",
+
+  "EDITOR_STAT_WINS": "Vitórias",
+  "EDITOR_STAT_LOSSES": "Derrotas",
+  "EDITOR_STAT_DRAWS": "Empates",
+  "EDITOR_STAT_STREAK_CURRENT": "Sequência atual",
+  "EDITOR_STAT_STREAK_BEST": "Melhor sequência",
+
+  "EDITOR_BTN_BACK": "Voltar",
+  "EDITOR_BTN_BACK_MENU": "Voltar ao Menu",
+  "EDITOR_BTN_CONFIRM": "Confirmar edição",
+  "EDITOR_BTN_SET_VALUE": "Editar valor",
+  "EDITOR_BTN_ZERO": "Zerar",
+
+  "EDITOR_MODAL_SET_TITLE": "Editar valor",
+  "EDITOR_MODAL_SET_LABEL": "Novo valor (número)",
+  "EDITOR_MODAL_JUSTIFY_TITLE": "Justificativa",
+  "EDITOR_MODAL_JUSTIFY_LABEL": "Por que está editando essa estatística?",
+
+  "EDITOR_INVALID_NUMBER": "⚠️ Número inválido.",
+  "EDITOR_INVALID_USER": "⚠️ Usuário inválido. Use @menção ou ID.",
+  "EDITOR_USER_NOT_FOUND": "⚠️ Usuário não encontrado no servidor.",
+  "EDITOR_NO_VALUE": "⚠️ Nenhum valor selecionado.",
+
+  "EDITOR_BADGES_SELECT_DESC": "Selecione as insígnias que deseja definir para este jogador.",
+  "EDITOR_BADGES_SELECT_PLACEHOLDER": "Escolher insígnias...",
+  "EDITOR_BADGES_SELECT_SOON": "Seletor em breve...",
+
+  "EDITOR_RIVALRIES_DESC": "Selecione o que deseja editar:",
+  "EDITOR_RIVALRIES_PICK_NEMESIS": "Selecionar Carrasco",
+  "EDITOR_RIVALRIES_PICK_FAVORITE": "Selecionar Freguês",
+  "EDITOR_RIVALRIES_PICK_OPPONENT": "Selecionar Adversário",
+  "EDITOR_RIVALRIES_PICK_LABEL": "ID do usuário ou @menção",
+
+  "EDITOR_RIVALRIES_NEMESIS_TITLE": "Carrasco — derrotas",
+  "EDITOR_RIVALRIES_NEMESIS_LABEL": "Quantas vezes perdeu?",
+
+  "EDITOR_RIVALRIES_FAVORITE_TITLE": "Freguês — vitórias",
+  "EDITOR_RIVALRIES_FAVORITE_LABEL": "Quantas vitórias contra ele?",
+
+  "EDITOR_RIVALRIES_BESTWIN_FOR_TITLE": "Maior Vitória — gols feitos",
+  "EDITOR_RIVALRIES_BESTWIN_FOR_LABEL": "Gols feitos pelo jogador",
+
+  "EDITOR_RIVALRIES_BESTWIN_AGAINST_TITLE": "Maior Vitória — gols sofridos",
+  "EDITOR_RIVALRIES_BESTWIN_AGAINST_LABEL": "Gols feitos pelo adversário",
+
+  "EDITOR_RIVAL_NEMESIS_USERID": "ID do Carrasco",
+  "EDITOR_RIVAL_NEMESIS_COUNT": "Derrotas para o Carrasco",
+  "EDITOR_RIVAL_FAVORITE_USERID": "ID do Freguês",
+  "EDITOR_RIVAL_FAVORITE_COUNT": "Vitórias contra o Freguês",
+  "EDITOR_RIVAL_BESTWIN_USERID": "ID do Adversário (Maior Vitória)",
+  "EDITOR_RIVAL_BESTWIN_FOR": "Gols Feitos (Maior Vitória)",
+  "EDITOR_RIVAL_BESTWIN_AGAINST": "Gols Sofridos (Maior Vitória)",
+
+  "EDITOR_STAT_WO_WINS": "Vitórias por WO",
+  "EDITOR_STAT_WARNINGS": "Advertências",
+  "EDITOR_STAT_PUNISHED_UNTIL": "Punido até",
+
+  "EDITOR_GOALS_BEST_SCORED": "Mais gols marcados em uma partida",
+  "EDITOR_GOALS_BEST_CONCEDED": "Mais gols sofridos em uma partida",
+
+  "EDITOR_BADGE_FIRST_DIAMOND": "Primeiro Diamante",
+  "EDITOR_BADGE_FIRST_CHAMPION": "Primeiro Campeão",
+  "EDITOR_BADGE_LEGEND": "Lenda",
+  "EDITOR_BADGE_TOTAL": "Total de insígnias",
+
+  "EDITOR_RANK_TITLE": "Rank da Season",
+  "EDITOR_RANK_DESC": "Selecione o rank correto para este jogador.\n\n📌 Isso irá:\n- definir o rank real (`seasonRank`)\n- ajustar o **XP mínimo** do rank\n- aplicar o cargo do rank automaticamente",
+  "EDITOR_RANK_CURRENT": "Rank atual",
+  "EDITOR_RANK_SELECT_PLACEHOLDER": "Escolher rank...",
+  "EDITOR_RANK_DONE": "Rank atualizado com sucesso.",
+  "EDITOR_RANK_DONE_HINT": "✅ O cargo do rank foi sincronizado automaticamente."
 }

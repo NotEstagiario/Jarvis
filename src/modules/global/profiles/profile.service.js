@@ -34,27 +34,65 @@ function ensureCompetitiveProfile(userId) {
   if (found) return;
 
   const t = now();
+
+  // ✅ compatível com schema.sql atual
   db.prepare(
     `
     INSERT INTO competitive_profile (
       userId,
+
       xp,
+      seasonRank,
+
       wins, losses, draws,
       currentStreak, bestStreak,
+
       goalsScored, goalsConceded,
-      badges,
-      nemesisId, favoriteId, bestWinText,
+
+      woWins,
+      warnings,
+
+      badgesJson,
+
+      nemesisId,
+      nemesisLosses,
+
+      favoriteId,
+      favoriteWins,
+
+      bestWinOpponentId,
+      bestWinGoalsFor,
+      bestWinGoalsAgainst,
+
       punishedUntil,
       updatedAt
     )
     VALUES (
       ?,
+
       0,
+      'unranked',
+
       0, 0, 0,
       0, 0,
+
       0, 0,
+
+      0,
+      0,
+
       NULL,
-      NULL, NULL, NULL,
+
+      NULL,
+      0,
+
+      NULL,
+      0,
+
+      NULL,
+      0,
+      0,
+
       NULL,
       ?
     )
@@ -70,6 +108,25 @@ function getCompetitiveProfile(userId) {
 }
 
 // ========================================================
+// Update field (v2.2)
+// Usado pelo /editarperfil (staff wizard) e futuros ajustes.
+// ========================================================
+function updateCompetitiveField(userId, field, value) {
+  const db = getDb();
+  ensureCompetitiveProfile(userId);
+
+  db.prepare(
+    `
+    UPDATE competitive_profile
+    SET ${field} = ?, updatedAt = ?
+    WHERE userId = ?
+    `
+  ).run(value, now(), userId);
+
+  return getCompetitiveProfile(userId);
+}
+
+// ========================================================
 // Reset stats (v2.1)
 // Usado por /resetpremium e por futuros resets staff.
 // ========================================================
@@ -79,24 +136,41 @@ function resetCompetitivePublicStats(userId) {
 
   const t = now();
 
-  // ⚠️ não resetar campos staff (warnings/woWins/punishedUntil)
-  // Premium é feature do usuário: apenas stats competitivas.
+  // ✅ Regra Word:
+  // reset premium = reset real do perfil competitivo
+  // - volta seasonRank pro "unranked" (Sem Rank)
+  // - limpa rivalidades e badges
+  //
+  // ⚠️ NÃO resetar campos staff: warnings/woWins/punishedUntil
   db.prepare(
     `
     UPDATE competitive_profile
     SET
       xp = 0,
+      seasonRank = 'unranked',
+
       wins = 0,
       losses = 0,
       draws = 0,
+
       currentStreak = 0,
       bestStreak = 0,
+
       goalsScored = 0,
       goalsConceded = 0,
-      badges = NULL,
+
+      badgesJson = NULL,
+
       nemesisId = NULL,
+      nemesisLosses = 0,
+
       favoriteId = NULL,
-      bestWinText = NULL,
+      favoriteWins = 0,
+
+      bestWinOpponentId = NULL,
+      bestWinGoalsFor = 0,
+      bestWinGoalsAgainst = 0,
+
       updatedAt = ?
     WHERE userId = ?
     `
@@ -107,5 +181,6 @@ module.exports = {
   ensureUser,
   ensureCompetitiveProfile,
   getCompetitiveProfile,
+  updateCompetitiveField,
   resetCompetitivePublicStats,
 };

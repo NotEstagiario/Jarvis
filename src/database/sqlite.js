@@ -33,46 +33,103 @@ function addColumnIfMissing(table, column, sqlTypeAndDefault) {
   db.prepare(`ALTER TABLE ${table} ADD COLUMN ${column} ${sqlTypeAndDefault}`).run();
 }
 
+function hasTable(table) {
+  const found = db
+    .prepare(
+      `
+      SELECT name
+      FROM sqlite_master
+      WHERE type='table' AND name=?
+      `
+    )
+    .get(table);
+
+  return !!found;
+}
+
 function ensureCompetitiveProfileColumns() {
   // ========================================================
-  // Migração v1.0/v1.1: compatibilidade perfil
+  // Migração compatibilidade perfil (schema novo)
   // ========================================================
 
+  // Rank system
+  addColumnIfMissing("competitive_profile", "xp", "INTEGER NOT NULL DEFAULT 0");
+  addColumnIfMissing("competitive_profile", "seasonRank", "TEXT");
+
+  // ✅ Player / Word
+  addColumnIfMissing("competitive_profile", "championships", "INTEGER NOT NULL DEFAULT 0");
+
+  // Match stats
+  addColumnIfMissing("competitive_profile", "wins", "INTEGER NOT NULL DEFAULT 0");
+  addColumnIfMissing("competitive_profile", "losses", "INTEGER NOT NULL DEFAULT 0");
+  addColumnIfMissing("competitive_profile", "draws", "INTEGER NOT NULL DEFAULT 0");
+
+  // streaks / goals
   addColumnIfMissing("competitive_profile", "currentStreak", "INTEGER NOT NULL DEFAULT 0");
   addColumnIfMissing("competitive_profile", "bestStreak", "INTEGER NOT NULL DEFAULT 0");
   addColumnIfMissing("competitive_profile", "goalsScored", "INTEGER NOT NULL DEFAULT 0");
   addColumnIfMissing("competitive_profile", "goalsConceded", "INTEGER NOT NULL DEFAULT 0");
 
+  // ✅ record goals (Word)
+  addColumnIfMissing("competitive_profile", "bestGoalsScoredInMatch", "INTEGER NOT NULL DEFAULT 0");
+  addColumnIfMissing("competitive_profile", "bestGoalsConcededInMatch", "INTEGER NOT NULL DEFAULT 0");
+
   // STAFF / PRIVADO
   addColumnIfMissing("competitive_profile", "woWins", "INTEGER NOT NULL DEFAULT 0");
   addColumnIfMissing("competitive_profile", "warnings", "INTEGER NOT NULL DEFAULT 0");
 
-  // extras
-  addColumnIfMissing("competitive_profile", "badges", "TEXT");
-  addColumnIfMissing("competitive_profile", "nemesisId", "TEXT");
-  addColumnIfMissing("competitive_profile", "favoriteId", "TEXT");
-  addColumnIfMissing("competitive_profile", "bestWinText", "TEXT");
+  // Badges (novo)
+  addColumnIfMissing("competitive_profile", "badgesJson", "TEXT");
 
+  // Rivalries (novo completo)
+  addColumnIfMissing("competitive_profile", "nemesisId", "TEXT");
+  addColumnIfMissing("competitive_profile", "nemesisLosses", "INTEGER NOT NULL DEFAULT 0");
+
+  addColumnIfMissing("competitive_profile", "favoriteId", "TEXT");
+  addColumnIfMissing("competitive_profile", "favoriteWins", "INTEGER NOT NULL DEFAULT 0");
+
+  addColumnIfMissing("competitive_profile", "bestWinOpponentId", "TEXT");
+  addColumnIfMissing("competitive_profile", "bestWinGoalsFor", "INTEGER NOT NULL DEFAULT 0");
+  addColumnIfMissing("competitive_profile", "bestWinGoalsAgainst", "INTEGER NOT NULL DEFAULT 0");
+
+  // Moderation/system
   addColumnIfMissing("competitive_profile", "punishedUntil", "INTEGER");
   addColumnIfMissing("competitive_profile", "updatedAt", "INTEGER NOT NULL DEFAULT 0");
+
+  // ========================================================
+  // Compatibilidade LEGACY (colunas antigas que podem existir)
+  // ========================================================
+  // ⚠️ Não remove colunas antigas, apenas garante que o código novo funcione.
+  addColumnIfMissing("competitive_profile", "badges", "TEXT");
+  addColumnIfMissing("competitive_profile", "bestWinText", "TEXT");
+}
+
+function postMigrationFixes() {
+  // ⚠️ Normalizações para evitar problemas futuros
+
+  try {
+    // seasonRank: se existir mas estiver NULL -> preencher unranked
+    if (hasColumn("competitive_profile", "seasonRank")) {
+      db.prepare(
+        `
+        UPDATE competitive_profile
+        SET seasonRank = 'unranked'
+        WHERE seasonRank IS NULL OR TRIM(seasonRank) = ''
+        `
+      ).run();
+    }
+  } catch (err) {
+    logger.warn("Falha em postMigrationFixes (ignorado).", err);
+  }
 }
 
 function runMigrations() {
   try {
-    // Só roda se a tabela existir
-    const exists = db
-      .prepare(
-        `
-        SELECT name
-        FROM sqlite_master
-        WHERE type='table' AND name='competitive_profile'
-        `
-      )
-      .get();
-
-    if (!exists) return;
+    if (!hasTable("competitive_profile")) return;
 
     ensureCompetitiveProfileColumns();
+    postMigrationFixes();
+
     logger.info("Migrações SQLite aplicadas com sucesso.");
   } catch (err) {
     logger.error("Erro ao aplicar migrações SQLite.", err);
@@ -119,7 +176,7 @@ function applySchema() {
   db.exec(schema);
   logger.info("Schema aplicado com sucesso.");
 
-  // ✅ após schema, roda migrações leves
+  // ✅ mesmo se schema já existir, migrações garantem compatibilidade
   runMigrations();
 }
 

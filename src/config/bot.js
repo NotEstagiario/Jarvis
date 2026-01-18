@@ -7,6 +7,6 @@
 
 module.exports = {
   name: "Jarvis",
-  version: "v2.1",
+  version: "v2.2",
   signature: "👑 King N",
 };
