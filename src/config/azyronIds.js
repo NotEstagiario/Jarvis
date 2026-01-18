@@ -26,6 +26,9 @@ module.exports = {
     reviewResults: "1460227837654204597",
     alertChannel: "1460858040864477349",
 
+    // ✅ RESET ADMIN
+    resetar: "1462461161831141396",
+
     // PUNIÇÕES
     tribunal: "1461406031128035450",
     blacklist: "1445517702902059119",

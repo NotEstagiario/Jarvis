@@ -7,6 +7,8 @@ const azyron = require("../config/azyronIds");
 const { ensureLanguagePanel } = require("../modules/global/language/language.panel");
 const { buildGameplayPanel } = require("../modules/global/gameplay/gameplay.panel");
 
+const { ensureResetPanel } = require("../modules/staff/resetar/resetar.panel");
+
 async function hasPanelMessage(channel, clientUserId, uniqueTextA, uniqueTextB) {
   try {
     const messages = await channel.messages.fetch({ limit: 30 });
@@ -26,7 +28,7 @@ module.exports = async (client) => {
     logger.info("✅ Jarvis ONLINE — " + botConfig.version + " 👑 King N");
     logger.info("Logado como: " + client.user.tag);
 
-    // painel idioma (v1.2) — agora sem spam
+    // painel idioma (v1.2) — sem spam
     try {
       await ensureLanguagePanel(client);
     } catch (err) {
@@ -35,24 +37,32 @@ module.exports = async (client) => {
 
     // painel gameplay (v1.3)
     const styleChannelId = azyron.channels.style;
-    if (!styleChannelId) return;
+    if (styleChannelId) {
+      const channel = await client.channels.fetch(styleChannelId).catch(() => null);
 
-    const channel = await client.channels.fetch(styleChannelId).catch(() => null);
-    if (!channel) return;
+      if (channel) {
+        const exists = await hasPanelMessage(
+          channel,
+          client.user.id,
+          "Qual seu estilo de jogo?",
+          "What’s your playstyle?"
+        );
 
-    const exists = await hasPanelMessage(
-      channel,
-      client.user.id,
-      "Qual seu estilo de jogo?",
-      "What’s your playstyle?"
-    );
+        if (!exists) {
+          logger.warn("Painel Gameplay não encontrado. Postando novamente...");
+          await channel.send(buildGameplayPanel());
+          logger.info("✅ Painel Gameplay postado com sucesso.");
+        } else {
+          logger.info("✅ Painel Gameplay já existe. Nenhuma ação necessária.");
+        }
+      }
+    }
 
-    if (!exists) {
-      logger.warn("Painel Gameplay não encontrado. Postando novamente...");
-      await channel.send(buildGameplayPanel());
-      logger.info("✅ Painel Gameplay postado com sucesso.");
-    } else {
-      logger.info("✅ Painel Gameplay já existe. Nenhuma ação necessária.");
+    // painel reset admin (v2.3)
+    try {
+      await ensureResetPanel(client);
+    } catch (err) {
+      logger.error("Falha ao garantir painel de reset.", err);
     }
   } catch (err) {
     logger.error("Erro no evento ready.", err);

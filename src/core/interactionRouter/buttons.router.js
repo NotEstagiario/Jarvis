@@ -81,6 +81,44 @@ const COLOR_PREMIUM = 0xe2b719;
 const COLOR_MEGA = 0xff5dd6;
 
 // ========================================================
+// Rank Roles (Word)
+// MVP NÃO é removido em reset (cargo temporário)
+// ========================================================
+function getCompetitiveRankRoleIdsNoMvp() {
+  const roleIds = [];
+
+  if (azyron?.ranks?.cobre?.roleId) roleIds.push(azyron.ranks.cobre.roleId);
+  if (azyron?.ranks?.ferro?.roleId) roleIds.push(azyron.ranks.ferro.roleId);
+  if (azyron?.ranks?.bronze?.roleId) roleIds.push(azyron.ranks.bronze.roleId);
+  if (azyron?.ranks?.prata?.roleId) roleIds.push(azyron.ranks.prata.roleId);
+  if (azyron?.ranks?.ouro?.roleId) roleIds.push(azyron.ranks.ouro.roleId);
+  if (azyron?.ranks?.diamante?.roleId) roleIds.push(azyron.ranks.diamante.roleId);
+
+  // MVP não entra
+  // if (azyron?.ranks?.mvp?.roleId) roleIds.push(azyron.ranks.mvp.roleId);
+
+  return Array.from(new Set(roleIds.map((x) => String(x))));
+}
+
+async function removeCompetitiveRankRolesFromMemberSafe(member) {
+  try {
+    if (!member) return { ok: false, reason: "NO_MEMBER" };
+
+    const roleIds = getCompetitiveRankRoleIdsNoMvp();
+    if (!roleIds.length) return { ok: false, reason: "NO_RANK_ROLES" };
+
+    const toRemove = roleIds.filter((rid) => member.roles.cache.has(rid));
+    if (!toRemove.length) return { ok: true, removed: 0 };
+
+    await member.roles.remove(toRemove).catch(() => {});
+    return { ok: true, removed: toRemove.length };
+  } catch (err) {
+    logger.warn("Falha ao remover cargos de rank (buttons.router).", err);
+    return { ok: false, reason: "ERROR" };
+  }
+}
+
+// ========================================================
 // Mensagens (rotação) — escolher estilo (15 cada)
 // ========================================================
 const chooseMsgsPT = {
@@ -288,6 +326,37 @@ module.exports = async (interaction) => {
   }
 
   // ========================================================
+  // Central de Reset (v2.3) - Painel fixo
+  // ========================================================
+  if (
+    customId === "resetar_open_stats" ||
+    customId === "resetar_open_ranks" ||
+    customId === "resetar_open_season" ||
+    customId === "resetar_global_all" ||
+    customId === "resetar_stats_individual" ||
+    customId === "resetar_stats_global" ||
+    customId === "resetar_back_home" ||
+    customId.startsWith("resetar_pres_confirm:") ||
+    customId.startsWith("resetar_pres_deny:")
+  ) {
+    try {
+      const { handleResetarButton, handlePresidentDecision } = require("../../modules/staff/resetar/resetar.ui");
+
+      if (customId.startsWith("resetar_pres_")) {
+        return handlePresidentDecision(interaction);
+      }
+
+      return handleResetarButton(interaction);
+    } catch (err) {
+      logger.error("Erro nos botões Central de Reset", err);
+      return safeReply(interaction, {
+        ephemeral: true,
+        content: t(lang, "COMMON_ERROR_GENERIC"),
+      });
+    }
+  }
+
+  // ========================================================
   // /desafiar (v2.0)
   // ========================================================
   if (
@@ -452,6 +521,12 @@ module.exports = async (interaction) => {
           logger.error("Falha ao resetar championships no /resetpremium.", e);
           // não quebra o comando, pois o reset do resto já foi feito
         }
+
+        // ========================================================
+        // ✅ WORD: resetpremium também remove cargos de rank
+        // MVP NÃO remove (cargo temporário)
+        // ========================================================
+        await removeCompetitiveRankRolesFromMemberSafe(member).catch(() => {});
 
         const usedAt = markPremiumResetUsed(userId);
 

@@ -49,12 +49,10 @@ module.exports = async (interaction) => {
         });
       }
 
-      // Modals gerais do editor
       const { handleModalSetCustom, handleModalJustify } = require("../../modules/staff/profileEditor/profileEditor.ui");
       if (customId === MODAL.SET_CUSTOM) return handleModalSetCustom(interaction);
       if (customId === MODAL.JUSTIFY) return handleModalJustify(interaction);
 
-      // Rivalries flow (modals)
       const {
         handlePickUserModalSubmit,
         handleNemesisValueModalSubmit,
@@ -73,6 +71,18 @@ module.exports = async (interaction) => {
         ephemeral: true,
         content: lang === "en-US" ? "⚠️ Unknown modal." : "⚠️ Modal desconhecido.",
       });
+    }
+
+    // ========================================================
+    // Central de Reset (v2.3)
+    // ========================================================
+    if (
+      customId === "resetar_modal_stats_individual" ||
+      customId === "resetar_modal_stats_global" ||
+      customId === "resetar_modal_global_all"
+    ) {
+      const { handleResetarModal } = require("../../modules/staff/resetar/resetar.ui");
+      return handleResetarModal(interaction);
     }
 
     // ========================================================

@@ -16,14 +16,43 @@ const { getState, setState } = require("./profileEditor.state");
 const { BTN } = require("./profileEditor.constants");
 
 const { updateStat } = require("./profileEditor.service");
-
 const { getBadges } = require("../../global/badges/badges.catalog");
 
 const COLOR = 0xe2b719;
 
-function onlyYou(interaction) {
+// ========================================================
+// Helpers ACK-safe
+// - selectMenus.router já fez deferUpdate()
+// - aqui é proibido reply/defer, só editReply + followUp
+// ========================================================
+async function safeEditReply(interaction, payload) {
+  try {
+    return await interaction.editReply(payload);
+  } catch (err) {
+    const code = err?.code;
+    if (code === 10062 || code === 40060) return null;
+
+    try {
+      return await interaction.followUp({ ...payload, ephemeral: true });
+    } catch {
+      return null;
+    }
+  }
+}
+
+async function safeFollowUp(interaction, payload) {
+  try {
+    return await interaction.followUp({ ...payload, ephemeral: true });
+  } catch (err) {
+    const code = err?.code;
+    if (code === 10062 || code === 40060) return null;
+    return null;
+  }
+}
+
+async function onlyYou(interaction) {
   const lang = getUserLang(interaction.user.id);
-  return interaction.reply({ ephemeral: true, content: t(lang, "COMMON_ONLY_YOU") });
+  return safeFollowUp(interaction, { content: t(lang, "COMMON_ONLY_YOU") });
 }
 
 function safeJsonParse(str, fallback) {
@@ -44,7 +73,10 @@ async function openBadgesMenu(interaction) {
   const lang = getUserLang(staffId);
 
   const st = getState(staffId);
-  if (!st?.targetId) return onlyYou(interaction);
+  if (!st?.targetId) {
+    // aqui é botão do wizard (não selectMenu), então pode reply normal
+    return interaction.reply({ ephemeral: true, content: t(lang, "COMMON_ONLY_YOU") });
+  }
 
   setState(staffId, { ...st, menu: "BADGES_MENU", flow: "BADGES" });
 
@@ -61,43 +93,35 @@ async function openBadgesMenu(interaction) {
       ].join("\n")
     );
 
-  // ========================================================
-  // Carrega badges atuais do DB (badgesJson)
-  // ========================================================
+  // badges atuais do DB
   let current = [];
   try {
     const { getCompetitiveProfile } = require("../../global/profiles/profile.service");
     const p = getCompetitiveProfile(st.targetId);
-    current = Array.isArray(safeJsonParse(p?.badgesJson || "[]", []))
-      ? safeJsonParse(p?.badgesJson || "[]", [])
-      : [];
+
+    const parsed = safeJsonParse(p?.badgesJson || "[]", []);
+    current = Array.isArray(parsed) ? parsed : [];
   } catch {
     current = [];
   }
 
   current = unique(current.filter(Boolean)).slice(0, 25);
 
-  // ========================================================
-  // MENU (sempre aparece, mesmo vazio)
-  // ========================================================
   const menu = new StringSelectMenuBuilder()
     .setCustomId("editprofile_badges_select")
-    .setPlaceholder(hasCatalog ? t(lang, "EDITOR_BADGES_SELECT_PLACEHOLDER") : t(lang, "EDITOR_BADGES_SELECT_SOON"))
+    .setPlaceholder(
+      hasCatalog ? t(lang, "EDITOR_BADGES_SELECT_PLACEHOLDER") : t(lang, "EDITOR_BADGES_SELECT_SOON")
+    )
     .setMinValues(0)
     .setMaxValues(hasCatalog ? Math.min(25, badges.length) : 1)
     .setDisabled(!hasCatalog);
 
-  // catálogo vazio => 1 option fake (discord exige option)
   if (!hasCatalog) {
     menu.addOptions(
       new StringSelectMenuOptionBuilder()
         .setLabel(lang === "en-US" ? "No badges yet" : "Nenhuma insígnia ainda")
         .setValue("soon_badges")
-        .setDescription(
-          lang === "en-US"
-            ? "This selector will be enabled soon."
-            : "Esse seletor será habilitado em breve."
-        )
+        .setDescription(lang === "en-US" ? "This selector will be enabled soon." : "Esse seletor será habilitado em breve.")
     );
   } else {
     for (const badge of badges.slice(0, 25)) {
@@ -136,7 +160,8 @@ async function openBadgesMenu(interaction) {
 
 // ========================================================
 // handleBadgesSelect (selectMenus.router)
-// ✅ FIX 40060: deferUpdate + editReply
+// - router já fez deferUpdate()
+// - aqui aplica badges + atualiza painel + manda confirmação ephemeral
 // ========================================================
 async function handleBadgesSelect(interaction) {
   const staffId = interaction.user.id;
@@ -145,31 +170,29 @@ async function handleBadgesSelect(interaction) {
   const st = getState(staffId);
   if (!st?.targetId) return onlyYou(interaction);
 
-  // catálogo vazio => ignora (só estética)
   const badges = getBadges();
   const hasCatalog = Array.isArray(badges) && badges.length > 0;
-  if (!hasCatalog) {
-    // ⚠️ select menu em geral é melhor usar deferUpdate, nunca reply aqui
-    try {
-      await interaction.deferUpdate();
-      return interaction.editReply({
-        embeds: [],
-        components: interaction.message.components,
-      });
-    } catch {
-      return;
-    }
-  }
 
-  // ✅ SEMPRE deferUpdate primeiro (evita "interaction failed")
-  await interaction.deferUpdate();
+  if (!hasCatalog) {
+    return safeEditReply(interaction, {
+      embeds: [],
+      components: interaction.message.components,
+    });
+  }
 
   const picked = interaction.values || [];
   const list = unique(picked.filter(Boolean)).slice(0, 25);
 
   updateStat(st.targetId, "badgesJson", JSON.stringify(list));
 
-  const embed = new EmbedBuilder()
+  // atualiza painel
+  await safeEditReply(interaction, {
+    embeds: interaction.message.embeds,
+    components: interaction.message.components,
+  });
+
+  // confirmação ephemeral
+  const doneEmbed = new EmbedBuilder()
     .setColor(COLOR)
     .setDescription(
       [
@@ -179,10 +202,7 @@ async function handleBadgesSelect(interaction) {
       ].join("\n")
     );
 
-  return interaction.editReply({
-    embeds: [embed],
-    components: interaction.message.components,
-  });
+  return safeFollowUp(interaction, { embeds: [doneEmbed] });
 }
 
 module.exports = {

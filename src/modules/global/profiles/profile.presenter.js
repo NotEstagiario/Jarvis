@@ -269,12 +269,12 @@ function buildProfileUI({
   );
 
   // ========================================================
-  // Page 1 - Badges
+  // ✅ Page 1 - Badges (COR DINÂMICA DO RANK)
   // ========================================================
   pages.push(
     new EmbedBuilder()
       .setAuthor(author)
-      .setColor(0x2b2d31)
+      .setColor(rankColor)
       .setDescription(`# 💎 ${t(lang, "PROFILE_TITLE_BADGES")}`)
       .addFields({
         name: "",
@@ -284,7 +284,7 @@ function buildProfileUI({
   );
 
   // ========================================================
-  // Page 2 - Matches
+  // ✅ Page 2 - Matches (COR DINÂMICA DO RANK)
   // ========================================================
   const wins = Number(profileData.wins ?? 0);
   const losses = Number(profileData.losses ?? 0);
@@ -295,7 +295,7 @@ function buildProfileUI({
   pages.push(
     new EmbedBuilder()
       .setAuthor(author)
-      .setColor(0x2b2d31)
+      .setColor(rankColor)
       .setDescription(`# ⚔️ ${t(lang, "PROFILE_TITLE_MATCHES")}`)
       .addFields(
         {
@@ -322,7 +322,7 @@ function buildProfileUI({
   );
 
   // ========================================================
-  // Page 3 - Goals
+  // ✅ Page 3 - Goals (COR DINÂMICA DO RANK)
   // ========================================================
   const scored = Number(profileData.goalsScored ?? 0);
   const conceded = Number(profileData.goalsConceded ?? 0);
@@ -331,7 +331,7 @@ function buildProfileUI({
   pages.push(
     new EmbedBuilder()
       .setAuthor(author)
-      .setColor(0x2b2d31)
+      .setColor(rankColor)
       .setDescription(`# ⚽ ${t(lang, "PROFILE_TITLE_GOALS")}`)
       .addFields(
         {
@@ -353,7 +353,7 @@ function buildProfileUI({
   );
 
   // ========================================================
-  // Page 4 - Rivalries ✅ agora 100% real + embed bonitona
+  // ✅ Page 4 - Rivalries (COR DINÂMICA DO RANK)
   // ========================================================
   const nemesisText = renderMentionOrNA(profileData?.nemesisId, lang);
   const favoriteText = renderMentionOrNA(profileData?.favoriteId, lang);
@@ -367,7 +367,7 @@ function buildProfileUI({
   pages.push(
     new EmbedBuilder()
       .setAuthor(author)
-      .setColor(0x2b2d31)
+      .setColor(rankColor)
       .setDescription(`# 👥 ${t(lang, "PROFILE_TITLE_RIVALRIES")}`)
       .addFields(
         {

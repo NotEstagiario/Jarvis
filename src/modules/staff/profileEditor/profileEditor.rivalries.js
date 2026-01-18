@@ -28,9 +28,36 @@ const FLOW = {
   BESTWIN: "BESTWIN",
 };
 
-function onlyYou(interaction) {
+// ========================================================
+// Helpers ACK-safe
+// ========================================================
+async function safeEditReply(interaction, payload) {
+  try {
+    // ✅ se já foi acknowledged -> editReply
+    if (interaction.deferred || interaction.replied) {
+      return await interaction.editReply(payload);
+    }
+
+    // ✅ caso contrário -> reply normal
+    return await interaction.reply({ ...payload, ephemeral: true });
+  } catch {
+    try {
+      return await interaction.followUp({ ...payload, ephemeral: true });
+    } catch {
+      // ignore
+    }
+  }
+}
+
+async function onlyYou(interaction) {
   const lang = getUserLang(interaction.user.id);
-  return interaction.reply({ ephemeral: true, content: t(lang, "COMMON_ONLY_YOU") });
+
+  // ✅ nunca interaction.reply direto
+  return safeEditReply(interaction, {
+    content: t(lang, "COMMON_ONLY_YOU"),
+    embeds: [],
+    components: [],
+  });
 }
 
 function parseMentionOrId(raw) {
@@ -62,8 +89,6 @@ async function openRivalriesMenu(interaction) {
     pendingValueB: null,
   });
 
-  // ✅ PADRÃO WORD (igual Partidas / Gols)
-  // ✅ FIX: adiciona # para ficar grande (só isso)
   const embed = new EmbedBuilder()
     .setColor(COLOR)
     .setDescription(
@@ -140,7 +165,7 @@ async function openRivalryPickUserModal(interaction, flow) {
 }
 
 // ========================================================
-// FIX: do NOT chain showModal from ModalSubmitInteraction
+// ModalSubmit: PICK USER
 // ========================================================
 async function handlePickUserModalSubmit(interaction) {
   const staffId = interaction.user.id;
@@ -153,7 +178,7 @@ async function handlePickUserModalSubmit(interaction) {
   const pickedId = parseMentionOrId(raw);
 
   if (!pickedId) {
-    return interaction.reply({ ephemeral: true, content: t(lang, "EDITOR_INVALID_USER") });
+    return safeEditReply(interaction, { content: t(lang, "EDITOR_INVALID_USER") });
   }
 
   // valida no servidor
@@ -165,7 +190,7 @@ async function handlePickUserModalSubmit(interaction) {
   }
 
   if (!member) {
-    return interaction.reply({ ephemeral: true, content: t(lang, "EDITOR_USER_NOT_FOUND") });
+    return safeEditReply(interaction, { content: t(lang, "EDITOR_USER_NOT_FOUND") });
   }
 
   setState(staffId, { ...st, pickedUserId: pickedId });
@@ -206,19 +231,20 @@ async function handlePickUserModalSubmit(interaction) {
       .setStyle(ButtonStyle.Success)
   );
 
-  return interaction.reply({
-    ephemeral: true,
+  return safeEditReply(interaction, {
     embeds: [embed],
     components: [row],
   });
 }
 
+// ========================================================
+// Nemesis
+// ========================================================
 async function openNemesisValueModal(interaction) {
-  const staffId = interaction.user.id;
-  const lang = getUserLang(staffId);
-
-  const st = getState(staffId);
+  const st = getState(interaction.user.id);
   if (!st?.targetId || !st?.pickedUserId) return onlyYou(interaction);
+
+  const lang = getUserLang(interaction.user.id);
 
   const modal = new ModalBuilder()
     .setCustomId(MODAL.RIVALRIES_NEMESIS_VALUE)
@@ -246,13 +272,12 @@ async function handleNemesisValueModalSubmit(interaction) {
   const num = Number(raw);
 
   if (!Number.isFinite(num) || num < 0) {
-    return interaction.reply({ ephemeral: true, content: t(lang, "EDITOR_INVALID_NUMBER") });
+    return safeEditReply(interaction, { content: t(lang, "EDITOR_INVALID_NUMBER") });
   }
 
   updateStat(st.targetId, "nemesisId", String(st.pickedUserId));
   updateStat(st.targetId, "nemesisLosses", Math.floor(num));
 
-  // ✅ LOGS
   await logStaffProfileEdit(interaction, {
     staffId,
     targetId: st.targetId,
@@ -271,15 +296,17 @@ async function handleNemesisValueModalSubmit(interaction) {
       ].join("\n")
     );
 
-  return interaction.reply({ ephemeral: true, embeds: [embed] });
+  return safeEditReply(interaction, { embeds: [embed], components: [] });
 }
 
+// ========================================================
+// Favorite
+// ========================================================
 async function openFavoriteValueModal(interaction) {
-  const staffId = interaction.user.id;
-  const lang = getUserLang(staffId);
-
-  const st = getState(staffId);
+  const st = getState(interaction.user.id);
   if (!st?.targetId || !st?.pickedUserId) return onlyYou(interaction);
+
+  const lang = getUserLang(interaction.user.id);
 
   const modal = new ModalBuilder()
     .setCustomId(MODAL.RIVALRIES_FAVORITE_VALUE)
@@ -307,13 +334,12 @@ async function handleFavoriteValueModalSubmit(interaction) {
   const num = Number(raw);
 
   if (!Number.isFinite(num) || num < 0) {
-    return interaction.reply({ ephemeral: true, content: t(lang, "EDITOR_INVALID_NUMBER") });
+    return safeEditReply(interaction, { content: t(lang, "EDITOR_INVALID_NUMBER") });
   }
 
   updateStat(st.targetId, "favoriteId", String(st.pickedUserId));
   updateStat(st.targetId, "favoriteWins", Math.floor(num));
 
-  // ✅ LOGS
   await logStaffProfileEdit(interaction, {
     staffId,
     targetId: st.targetId,
@@ -332,9 +358,12 @@ async function handleFavoriteValueModalSubmit(interaction) {
       ].join("\n")
     );
 
-  return interaction.reply({ ephemeral: true, embeds: [embed] });
+  return safeEditReply(interaction, { embeds: [embed], components: [] });
 }
 
+// ========================================================
+// Best win (2-step)
+// ========================================================
 async function openBestWinGoalsForModal(interaction) {
   const staffId = interaction.user.id;
   const lang = getUserLang(staffId);
@@ -370,7 +399,7 @@ async function handleBestWinForModalSubmit(interaction) {
   const num = Number(raw);
 
   if (!Number.isFinite(num) || num < 0) {
-    return interaction.reply({ ephemeral: true, content: t(lang, "EDITOR_INVALID_NUMBER") });
+    return safeEditReply(interaction, { content: t(lang, "EDITOR_INVALID_NUMBER") });
   }
 
   setState(staffId, { ...st, pendingValueA: Math.floor(num) });
@@ -394,19 +423,17 @@ async function handleBestWinForModalSubmit(interaction) {
       .setStyle(ButtonStyle.Success)
   );
 
-  return interaction.reply({
-    ephemeral: true,
+  return safeEditReply(interaction, {
     embeds: [embed],
     components: [row],
   });
 }
 
 async function openBestWinGoalsAgainstModal(interaction) {
-  const staffId = interaction.user.id;
-  const lang = getUserLang(staffId);
-
-  const st = getState(staffId);
+  const st = getState(interaction.user.id);
   if (!st?.targetId || !st?.pickedUserId) return onlyYou(interaction);
+
+  const lang = getUserLang(interaction.user.id);
 
   const modal = new ModalBuilder()
     .setCustomId(MODAL.RIVALRIES_BESTWIN_AGAINST)
@@ -434,7 +461,7 @@ async function handleBestWinAgainstModalSubmit(interaction) {
   const num = Number(raw);
 
   if (!Number.isFinite(num) || num < 0) {
-    return interaction.reply({ ephemeral: true, content: t(lang, "EDITOR_INVALID_NUMBER") });
+    return safeEditReply(interaction, { content: t(lang, "EDITOR_INVALID_NUMBER") });
   }
 
   const goalsFor = Number(st.pendingValueA ?? 0);
@@ -444,7 +471,6 @@ async function handleBestWinAgainstModalSubmit(interaction) {
   updateStat(st.targetId, "bestWinGoalsFor", Math.floor(goalsFor));
   updateStat(st.targetId, "bestWinGoalsAgainst", goalsAgainst);
 
-  // ✅ LOGS
   await logStaffProfileEdit(interaction, {
     staffId,
     targetId: st.targetId,
@@ -463,9 +489,12 @@ async function handleBestWinAgainstModalSubmit(interaction) {
       ].join("\n")
     );
 
-  return interaction.reply({ ephemeral: true, embeds: [embed] });
+  return safeEditReply(interaction, { embeds: [embed], components: [] });
 }
 
+// ========================================================
+// Rivalries buttons entry
+// ========================================================
 async function handleRivalriesButton(interaction) {
   const staffId = interaction.user.id;
   const st = getState(staffId);
@@ -475,7 +504,11 @@ async function handleRivalriesButton(interaction) {
   if (interaction.customId === BTN.RIVALRIES_SET_FAVORITE) return openRivalryPickUserModal(interaction, FLOW.FAVORITE);
   if (interaction.customId === BTN.RIVALRIES_SET_BESTWIN) return openRivalryPickUserModal(interaction, FLOW.BESTWIN);
 
-  return interaction.reply({ ephemeral: true, content: "⚠️ Unknown action." });
+  return safeEditReply(interaction, {
+    content: "⚠️ Unknown action.",
+    components: [],
+    embeds: [],
+  });
 }
 
 module.exports = {

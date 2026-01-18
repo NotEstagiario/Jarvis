@@ -177,10 +177,65 @@ function resetCompetitivePublicStats(userId) {
   ).run(t, userId);
 }
 
+// ========================================================
+// Reset staff full (v2.3)
+// Usado por /resetar (staff wizard)
+// ========================================================
+function resetCompetitiveStaffFull(userId) {
+  const db = getDb();
+  ensureCompetitiveProfile(userId);
+
+  const t = now();
+
+  // ✅ Regra Word (v2.3):
+  // /resetar deve resetar TUDO, inclusive W.O,
+  // porém NÃO pode resetar:
+  // - warnings
+  // - punishedUntil
+  db.prepare(
+    `
+    UPDATE competitive_profile
+    SET
+      xp = 0,
+      seasonRank = 'unranked',
+
+      wins = 0,
+      losses = 0,
+      draws = 0,
+
+      currentStreak = 0,
+      bestStreak = 0,
+
+      goalsScored = 0,
+      goalsConceded = 0,
+
+      woWins = 0,
+
+      badgesJson = NULL,
+
+      nemesisId = NULL,
+      nemesisLosses = 0,
+
+      favoriteId = NULL,
+      favoriteWins = 0,
+
+      bestWinOpponentId = NULL,
+      bestWinGoalsFor = 0,
+      bestWinGoalsAgainst = 0,
+
+      championships = 0,
+
+      updatedAt = ?
+    WHERE userId = ?
+    `
+  ).run(t, userId);
+}
+
 module.exports = {
   ensureUser,
   ensureCompetitiveProfile,
   getCompetitiveProfile,
   updateCompetitiveField,
   resetCompetitivePublicStats,
+  resetCompetitiveStaffFull, // ✅ v2.3
 };

@@ -20,24 +20,60 @@ const { safeSetEmoji } = require("../../../utils/emoji");
 const { getRanks, getRankLabel, getRankEmoji } = require("../../global/ranks/ranks.catalog");
 const { setSeasonRankStaff } = require("../../global/ranks/ranks.service");
 
+const { logStaffProfileEdit } = require("./profileEditor.logger");
+
 const COLOR = 0xe2b719;
 
-function onlyYou(interaction) {
+// ========================================================
+// Helpers ACK-safe
+// - selectMenus.router já fez deferUpdate()
+// - aqui é proibido reply/defer, só editReply + followUp
+// ========================================================
+async function safeEditReply(interaction, payload) {
+  try {
+    return await interaction.editReply(payload);
+  } catch (err) {
+    const code = err?.code;
+    if (code === 10062 || code === 40060) return null;
+
+    try {
+      return await interaction.followUp({ ...payload, ephemeral: true });
+    } catch {
+      return null;
+    }
+  }
+}
+
+async function safeFollowUp(interaction, payload) {
+  try {
+    return await interaction.followUp({ ...payload, ephemeral: true });
+  } catch (err) {
+    const code = err?.code;
+    if (code === 10062 || code === 40060) return null;
+    return null;
+  }
+}
+
+async function onlyYou(interaction) {
   const lang = getUserLang(interaction.user.id);
-  return interaction.reply({ ephemeral: true, content: t(lang, "COMMON_ONLY_YOU") });
+  return safeFollowUp(interaction, {
+    content: t(lang, "COMMON_ONLY_YOU"),
+  });
 }
 
 // ========================================================
 // openRankMenu
 // - selector de rank real (seasonRank)
-// - salva no DB e aplica cargos
 // ========================================================
 async function openRankMenu(interaction) {
   const staffId = interaction.user.id;
   const lang = getUserLang(staffId);
 
   const st = getState(staffId);
-  if (!st?.targetId) return onlyYou(interaction);
+  if (!st?.targetId) {
+    // aqui é botão do wizard (não selectMenu), então pode reply normal
+    return interaction.reply({ ephemeral: true, content: t(lang, "COMMON_ONLY_YOU") });
+  }
 
   setState(staffId, { ...st, menu: "RANK_MENU", flow: "RANK" });
 
@@ -92,7 +128,6 @@ async function openRankMenu(interaction) {
       .setStyle(ButtonStyle.Danger)
   );
 
-  // ✅ interaction.update aqui é OK porque é instantâneo (sem await pesado)
   return interaction.update({
     embeds: [embed],
     components: [rowSelect, rowBack],
@@ -101,8 +136,8 @@ async function openRankMenu(interaction) {
 
 // ========================================================
 // handleRankSelect (selectMenus.router)
-// ⚠️ IMPORTANTE: select menu tem timeout curto (~3s)
-// então PRECISA deferUpdate no começo
+// - router já fez deferUpdate()
+// - aqui aplica rank + atualiza painel + manda confirmação ephemeral + LOG
 // ========================================================
 async function handleRankSelect(interaction) {
   const staffId = interaction.user.id;
@@ -111,10 +146,17 @@ async function handleRankSelect(interaction) {
   const st = getState(staffId);
   if (!st?.targetId) return onlyYou(interaction);
 
-  // ✅ evita "This interaction failed" se algo demorar
-  await interaction.deferUpdate();
-
   const picked = String(interaction.values?.[0] || "unranked").toLowerCase();
+
+  // rank antigo (pra log)
+  let beforeRankId = "unranked";
+  try {
+    const { getCompetitiveProfile } = require("../../global/profiles/profile.service");
+    const p = getCompetitiveProfile(st.targetId);
+    beforeRankId = String(p?.seasonRank || "unranked").toLowerCase();
+  } catch {
+    beforeRankId = "unranked";
+  }
 
   // valida membro
   let targetMember = null;
@@ -124,7 +166,7 @@ async function handleRankSelect(interaction) {
     targetMember = null;
   }
 
-  // ✅ atualiza rank + xp mínimo + cargos
+  // ✅ aplica rank + cargos
   await setSeasonRankStaff({
     guild: interaction.guild,
     targetMember,
@@ -132,6 +174,38 @@ async function handleRankSelect(interaction) {
     rankId: picked,
   });
 
+  // ✅ LOG DA ALTERAÇÃO (isso é o que você quer ver no log)
+  try {
+    await logStaffProfileEdit(interaction, {
+      staffId,
+      targetId: st.targetId,
+      field: "seasonRank",
+      value: `${beforeRankId} -> ${picked}`,
+      reason: lang === "en-US" ? "Profile editor — Rank select" : "Editor de Perfil — Rank select",
+    });
+  } catch {
+    // não trava o fluxo
+  }
+
+  // ✅ atualiza embed do painel (wizard)
+  const panelEmbed = new EmbedBuilder()
+    .setColor(COLOR)
+    .setDescription(
+      [
+        `# 🏅 ${t(lang, "EDITOR_RANK_TITLE")}`,
+        ``,
+        t(lang, "EDITOR_RANK_DESC"),
+        ``,
+        `📌 ${t(lang, "EDITOR_RANK_CURRENT")}: **${getRankLabel(lang, picked)}**`,
+      ].join("\n")
+    );
+
+  await safeEditReply(interaction, {
+    embeds: [panelEmbed],
+    components: interaction.message.components,
+  });
+
+  // ✅ mensagem que você está exigindo que apareça (ephemeral)
   const done = new EmbedBuilder()
     .setColor(COLOR)
     .setDescription(
@@ -144,11 +218,7 @@ async function handleRankSelect(interaction) {
       ].join("\n")
     );
 
-  // ✅ depois do deferUpdate, o jeito certo é editReply
-  return interaction.editReply({
-    embeds: [done],
-    components: interaction.message.components,
-  });
+  return safeFollowUp(interaction, { embeds: [done] });
 }
 
 module.exports = {

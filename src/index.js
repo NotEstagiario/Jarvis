@@ -21,17 +21,47 @@ const interactionCreateEvent = require("./events/interactionCreate");
 // ========================================================
 // Versão do bot (Word)
 // ========================================================
+// ⚠️ mantenha coerente com o release atual
 const JARVIS_VERSION = "2.2";
+
+// ========================================================
+// Helpers - Ignorar erros "normais" do Discord
+// ========================================================
+
+function shouldIgnoreDiscordRejection(reason) {
+  // reason pode vir como:
+  // - DiscordAPIError
+  // - RestError
+  // - Error normal
+  // - string
+  const code = reason?.code;
+  const message = String(reason?.message || reason || "");
+
+  // ✅ erros comuns e "esperados" do Discord
+  // 10062 = Unknown interaction (expirada)
+  // 40060 = Interaction already acknowledged
+  if (code === 10062 || code === 40060) return true;
+
+  // fallback por texto
+  if (message.includes("Unknown interaction")) return true;
+  if (message.includes("Interaction has already been acknowledged")) return true;
+
+  return false;
+}
 
 // ========================================================
 // Captura de erros globais (evita "clean exit" silencioso)
 // ========================================================
 
 process.on("unhandledRejection", (reason) => {
+  // ✅ FIX DEFINITIVO: não tratar 10062 / 40060 como erro fatal
+  if (shouldIgnoreDiscordRejection(reason)) return;
+
   logger.error("Unhandled Rejection detectada.", reason);
 });
 
 process.on("uncaughtException", (err) => {
+  // aqui NÃO deve ignorar, pois geralmente é bug real
   logger.error("Uncaught Exception detectada.", err);
 });
 
